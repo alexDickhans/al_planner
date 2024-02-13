@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(backgroundColor: Theme.of(context).appBarTheme.foregroundColor,),
       body: PlatformMenuBar(
         menus: <PlatformMenuItem> [
           PlatformMenu(
@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         child: _widgetOptions[_selectedIndex],
       ),
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.background.withOpacity(0.6),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
