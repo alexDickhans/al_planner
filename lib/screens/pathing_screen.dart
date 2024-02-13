@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:al_planner/screens/path_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../utils/bezier.dart';
 import '../utils/point.dart';
@@ -17,7 +18,9 @@ class Command {
 
   Command.fromJson(Map<String, dynamic> json)
       : t = json['t'],
-        name = json['name'];
+        name = json['name'] {
+    textEditingController = TextEditingController(text: name);
+  }
 
   Map<String, dynamic> toJson() => {
         't': t,
@@ -36,7 +39,7 @@ class _PathingScreenState extends State<PathingScreen> {
   List<Bezier> beziers = [];
   List<Command> commands = [];
   double defaultMaxSpeed = maxSpeed;
-  double defaultMaxAccel = maxAccel;
+  double defaultMaxAccel = 120;
   TextEditingController editingController = TextEditingController(text: "");
 
   @override
@@ -58,17 +61,44 @@ class _PathingScreenState extends State<PathingScreen> {
                         builder:
                             (BuildContext context, BoxConstraints constraints) {
                           return GestureDetector(
-                              onPanUpdate: (details) {
-                                var newBeziers = beziers;
+                              onTapDown: (details) {
+                                if(RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+                                  var newBeziers = beziers;
 
-                                for (var bezier in newBeziers) {
-                                  if (bezier.move(details, context.size!)) {
-                                    break;
-                                  }
+                                  newBeziers.removeWhere((element) {
+                                    return element.isOver(details, context.size!);
+                                  });
+
+                                  setState(() {
+                                    beziers = newBeziers;
+                                  });
                                 }
-                                setState(() {
-                                  beziers = newBeziers;
-                                });
+                              },
+                              onPanUpdate: (details) {
+                                if(RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+                                  var newBeziers = beziers;
+
+                                  newBeziers.removeWhere((element) {
+                                    print(element.isOver(details, context.size!));
+                                    return element.isOver(details, context.size!);
+                                  });
+
+                                  setState(() {
+                                    beziers = newBeziers;
+                                  });
+                                } else {
+                                  var newBeziers = beziers;
+
+                                  for (var bezier in newBeziers) {
+                                    if (bezier.move(details, context.size!)) {
+                                      break;
+                                    }
+                                  }
+
+                                  setState(() {
+                                    beziers = newBeziers;
+                                  });
+                                }
                               },
                               onDoubleTapDown: (details) {
                                 setState(() {
@@ -80,12 +110,9 @@ class _PathingScreenState extends State<PathingScreen> {
                                       Point(2.0, 2.0),
                                       Point.fromOffset(
                                           details.localPosition, context.size!),
-                                      maxSpeed,
-                                      maxAccel));
+                                      defaultMaxSpeed,
+                                      defaultMaxAccel));
                                 });
-                              },
-                              onForcePressPeak: (details) {
-                                // for
                               },
                               child: CustomPaint(
                                 foregroundPainter: PathDrawer(beziers),
@@ -150,7 +177,7 @@ class _PathingScreenState extends State<PathingScreen> {
                 editingController.text = getData();
                 return TextField(
                   controller: editingController,
-                  onChanged: (value) {
+                  onSubmitted: (value) {
                     setData(value);
                   },
                 );
@@ -171,108 +198,111 @@ class _PathingScreenState extends State<PathingScreen> {
       child: SizedBox(
         height: 300,
         width: 100,
-        child: Column(
-          children: [
-            const Text(
-              "Velocity, Accel",
-              style: TextStyle(fontSize: 30),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Default: "),
-                Expanded(
-                  child: Slider(
-                    value: defaultMaxSpeed,
-                    min: 0,
-                    max: maxSpeed,
-                    onChanged: (double value) {
-                      setState(() {
-                        defaultMaxSpeed = value;
-                        for (var element in beziers) {
-                          element.pathMaxSpeed = value;
-                        }
-                      });
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: Slider(
-                    value: defaultMaxAccel,
-                    min: 0,
-                    max: maxAccel,
-                    onChanged: (double value) {
-                      setState(() {
-                        defaultMaxAccel = value;
-                        for (var element in beziers) {
-                          element.pathMaxAccel = value;
-                        }
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-            SingleChildScrollView(
-              child: SizedBox(
-                height: 400,
-                width: 400,
-                child: ListView.builder(
-                    itemCount: beziers.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return SizedBox(
-                        height: 30,
-                        width: 400,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Focus(
-                              onFocusChange: (value) {
-                                setState(() {
-                                  beziers[index].focused = value;
-                                });
-                                print(value);
-                              },
-                              child: Switch(
-                                value: beziers[index].reversed,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    beziers[index].reversed = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: Slider(
-                                value: beziers[index].pathMaxSpeed,
-                                min: 0,
-                                max: maxSpeed,
-                                onChanged: (double value) {
-                                  setState(() {
-                                    beziers[index].pathMaxSpeed = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: Slider(
-                                value: beziers[index].pathMaxAccel,
-                                min: 0,
-                                max: maxAccel,
-                                onChanged: (double value) {
-                                  setState(() {
-                                    beziers[index].pathMaxAccel = value;
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: Column(
+            children: [
+              const Text(
+                "Velocity, Accel",
+                style: TextStyle(fontSize: 30),
               ),
-            ),
-          ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Default: "),
+                  Expanded(
+                    child: Slider(
+                      value: defaultMaxSpeed,
+                      min: 0,
+                      max: maxSpeed,
+                      onChanged: (double value) {
+                        setState(() {
+                          defaultMaxSpeed = value;
+                          for (var element in beziers) {
+                            element.pathMaxSpeed = value;
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: defaultMaxAccel,
+                      min: 0,
+                      max: maxAccel,
+                      onChanged: (double value) {
+                        setState(() {
+                          defaultMaxAccel = value;
+                          for (var element in beziers) {
+                            element.pathMaxAccel = value;
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SingleChildScrollView(
+                child: SizedBox(
+                  height: 300,
+                  width: 600,
+                  child: ListView.builder(
+                      itemCount: beziers.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return SizedBox(
+                          height: 30,
+                          width: 600,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Focus(
+                                onFocusChange: (value) {
+                                  setState(() {
+                                    beziers[index].focused = value;
+                                  });
+                                  print(value);
+                                },
+                                child: Switch(
+                                  value: beziers[index].reversed,
+                                  onChanged: (bool value) {
+                                    setState(() {
+                                      beziers[index].reversed = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Expanded(
+                                child: Slider(
+                                  value: beziers[index].pathMaxSpeed,
+                                  min: 0,
+                                  max: maxSpeed,
+                                  onChanged: (double value) {
+                                    setState(() {
+                                      beziers[index].pathMaxSpeed = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Expanded(
+                                child: Slider(
+                                  value: beziers[index].pathMaxAccel,
+                                  min: 0,
+                                  max: maxAccel,
+                                  onChanged: (double value) {
+                                    setState(() {
+                                      beziers[index].pathMaxAccel = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -289,10 +319,14 @@ class _PathingScreenState extends State<PathingScreen> {
 
   void setData(String data) {
     setState(() {
+      print(data);
       final parsedData = jsonDecode(data) as Map<String, dynamic>;
 
       List<Bezier> newBeziers = [];
       List<Command> newCommands = [];
+
+      print(parsedData['segments']);
+      print(parsedData['commands']);
 
       for (var bezier in parsedData['segments']) {
         newBeziers.add(Bezier.fromJson(bezier));
