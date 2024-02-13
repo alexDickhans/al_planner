@@ -1,5 +1,6 @@
 
 import 'dart:ui';
+import 'package:format/format.dart';
 
 const double fieldWidth = 3.65;
 
@@ -37,5 +38,10 @@ class Point {
   void move(double x, double y, double width, double height) {
     this.x += y * fieldWidth / width;
     this.y += x * fieldWidth / height;
+  }
+
+  @override
+  String toString() {
+    return "x: {:.1f}, y: {:.1f}".format(x * 39.37, y * 39.37);
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:core';
 import 'dart:math';
 import 'dart:ui';
 
@@ -6,14 +7,20 @@ import 'package:flutter/material.dart';
 import 'point.dart';
 
 const double pointSize = 8;
+const double maxSpeed = 71;
+const double maxAccel = 200;
 
 class Bezier {
   Point p1 = Point(0, 0);
   Point p2 = Point(0, 0);
   Point p3 = Point(0, 0);
   Point p4 = Point(0, 0);
+  bool reversed = false;
 
-  Bezier(this.p1, this.p2, this.p3, this.p4);
+  double pathMaxSpeed = maxSpeed;
+  double pathMaxAccel = maxAccel;
+
+  Bezier(this.p1, this.p2, this.p3, this.p4, this.pathMaxSpeed, this.pathMaxAccel);
 
   Bezier.fromJson(Map<String, dynamic> json) :
         p1 = Point.fromJson(json[0]),
@@ -52,5 +59,11 @@ class Bezier {
     if (sqrt(pow(p4.getXScreen(size.width) - details.localPosition.dx, 2) + pow(p4.getYScreen(size.height) - details.localPosition.dy, 2)) < pointSize) {
       p4.move(details.delta.dx, details.delta.dy, size.width, size.height);
     }
+  }
+
+  @override
+  String toString() {
+    // TODO: implement toString
+    return "P1:$p1 P2: $p2 P3: $p3 P4: $p4";
   }
 }

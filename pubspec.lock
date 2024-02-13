@@ -75,6 +75,22 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  format:
+    dependency: "direct main"
+    description:
+      name: format
+      sha256: "8829452e1f01321dabe734a082674fe32bb0224caacb08d6d2d4b33f7eca3bdd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      sha256: "3bc132a9dbce73a7e4a21a17d06e1878839ffbf975568bc875c60537824b0c4d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.18.1"
   lints:
     dependency: transitive
     description:
