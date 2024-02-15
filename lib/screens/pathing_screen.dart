@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:al_planner/screens/path_drawer.dart';
+import 'package:al_planner/utils/double.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -23,7 +24,7 @@ class Command {
   }
 
   Map<String, dynamic> toJson() => {
-        't': t,
+        't': t.toPrecision(2),
         'name': name,
       };
 }
@@ -41,6 +42,7 @@ class _PathingScreenState extends State<PathingScreen> {
   double defaultMaxSpeed = maxSpeed;
   double defaultMaxAccel = 120;
   TextEditingController editingController = TextEditingController(text: "");
+  bool allVisible = true;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +81,6 @@ class _PathingScreenState extends State<PathingScreen> {
                                   var newBeziers = beziers;
 
                                   newBeziers.removeWhere((element) {
-                                    print(element.isOver(details, context.size!));
                                     return element.isOver(details, context.size!);
                                   });
 
@@ -138,7 +139,7 @@ class _PathingScreenState extends State<PathingScreen> {
                 child: const Icon(Icons.add),
               ),
               SizedBox(
-                width: 800,
+                width: 1600,
                 height: 300,
                 child: ListView.builder(
                     itemCount: commands.length,
@@ -149,7 +150,8 @@ class _PathingScreenState extends State<PathingScreen> {
                           Expanded(
                               flex: 2,
                               child: Slider(
-                                  label: commands[index].t.toString(),
+                                divisions: 1000,
+                                  label: commands[index].t.toPrecision(2).toString(),
                                   max: beziers.length.toDouble(),
                                   value: commands[index].t,
                                   onChanged: (double value) {
@@ -163,7 +165,6 @@ class _PathingScreenState extends State<PathingScreen> {
                             onChanged: (value) {
                               setState(() {
                                 commands[index].name = value;
-                                print(value);
                               });
                             },
                           )),
@@ -192,11 +193,11 @@ class _PathingScreenState extends State<PathingScreen> {
   Container buildVelConstraints(BuildContext context) {
     return Container(
       // color: Theme.of(context).focusColor,
-      decoration: BoxDecoration(
-          color: Theme.of(context).focusColor,
+      decoration: const BoxDecoration(
+          color: Color(0xfff5e6cf),
           borderRadius: BorderRadius.all(Radius.circular(20))),
       child: SizedBox(
-        height: 300,
+        height: 1000,
         width: 100,
         child: Padding(
           padding: EdgeInsets.all(10),
@@ -210,8 +211,19 @@ class _PathingScreenState extends State<PathingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Default: "),
+                  Switch(value: allVisible, onChanged: (value) {
+                    setState(() {
+                      allVisible = value;
+
+                      for (var bezier in beziers) {
+                        bezier.visible = value;
+                      }
+                    });
+                  }),
                   Expanded(
                     child: Slider(
+                      divisions: maxSpeed.toInt(),
+                      label: defaultMaxSpeed.round().toString(),
                       value: defaultMaxSpeed,
                       min: 0,
                       max: maxSpeed,
@@ -227,6 +239,8 @@ class _PathingScreenState extends State<PathingScreen> {
                   ),
                   Expanded(
                     child: Slider(
+                      divisions: maxAccel.toInt(),
+                      label: defaultMaxAccel.round().toString(),
                       value: defaultMaxAccel,
                       min: 0,
                       max: maxAccel,
@@ -255,12 +269,20 @@ class _PathingScreenState extends State<PathingScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Switch(
+                                value: beziers[index].visible,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    beziers[index].visible = value;
+                                    allVisible = beziers.any((element) {return element.visible;});
+                                  });
+                                },
+                              ),
                               Focus(
                                 onFocusChange: (value) {
                                   setState(() {
                                     beziers[index].focused = value;
                                   });
-                                  print(value);
                                 },
                                 child: Switch(
                                   value: beziers[index].reversed,
@@ -273,6 +295,8 @@ class _PathingScreenState extends State<PathingScreen> {
                               ),
                               Expanded(
                                 child: Slider(
+                                  divisions: maxSpeed.toInt(),
+                                  label: beziers[index].pathMaxSpeed.round().toString(),
                                   value: beziers[index].pathMaxSpeed,
                                   min: 0,
                                   max: maxSpeed,
@@ -285,6 +309,8 @@ class _PathingScreenState extends State<PathingScreen> {
                               ),
                               Expanded(
                                 child: Slider(
+                                  divisions: maxAccel.toInt(),
+                                  label: beziers[index].pathMaxAccel.round().toString(),
                                   value: beziers[index].pathMaxAccel,
                                   min: 0,
                                   max: maxAccel,
@@ -319,14 +345,10 @@ class _PathingScreenState extends State<PathingScreen> {
 
   void setData(String data) {
     setState(() {
-      print(data);
       final parsedData = jsonDecode(data) as Map<String, dynamic>;
 
       List<Bezier> newBeziers = [];
       List<Command> newCommands = [];
-
-      print(parsedData['segments']);
-      print(parsedData['commands']);
 
       for (var bezier in parsedData['segments']) {
         newBeziers.add(Bezier.fromJson(bezier));

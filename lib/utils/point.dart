@@ -1,5 +1,6 @@
-
+import 'dart:math';
 import 'dart:ui';
+import 'package:al_planner/utils/double.dart';
 import 'package:format/format.dart';
 
 const double fieldWidth = 3.65;
@@ -10,14 +11,18 @@ class Point {
 
   Point(this.x, this.y);
 
-  Point.fromOffset(Offset offset, Size size) : x = offset.dy * fieldWidth / size.width, y = offset.dx * fieldWidth / size.height;
+  Point.fromOffset(Offset offset, Size size)
+      : x = offset.dy * fieldWidth / size.width,
+        y = offset.dx * fieldWidth / size.height;
 
-  Point.fromJson(Map<String, dynamic> json) : x = json['x'] as double, y = json['y'] as double;
+  Point.fromJson(Map<String, dynamic> json)
+      : x = json['x'] as double,
+        y = json['y'] as double;
 
   Map<String, dynamic> toJson() => {
-    'x': x,
-    'y': y,
-  };
+        'x': x.toPrecision(3),
+        'y': y.toPrecision(3),
+      };
 
   double getXScreen(double width) {
     return y * width / fieldWidth;
@@ -25,6 +30,10 @@ class Point {
 
   double getYScreen(double height) {
     return x * height / fieldWidth;
+  }
+
+  Offset getOffset(Size size) {
+    return Offset(getXScreen(size.width), getYScreen(size.height));
   }
 
   double getX() {

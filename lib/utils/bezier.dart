@@ -18,6 +18,7 @@ class Bezier {
   Point p4 = Point(0, 0);
   bool reversed = false;
   bool focused = false;
+  bool visible = true;
 
   double pathMaxSpeed = maxSpeed;
   double pathMaxAccel = maxAccel;
@@ -30,8 +31,9 @@ class Bezier {
         p2 = Point.fromJson(json['paths'][1]),
         p3 = Point.fromJson(json['paths'][2]),
         p4 = Point.fromJson(json['paths'][3]),
-        pathMaxSpeed = json['constraints']['velocity'],
-        pathMaxAccel = json['constraints']['accel'];
+        pathMaxSpeed = json['constraints']['velocity'].toDouble(),
+        pathMaxAccel = json['constraints']['accel'].toDouble(),
+        reversed = json['inverted'];
 
   Path getPath(width, height) {
     Path path = Path();
@@ -47,6 +49,11 @@ class Bezier {
   }
 
   void drawCircles(Canvas canvas, width, height) {
+
+    if (!visible) {
+      return;
+    }
+
     Paint paint = Paint();
     paint.strokeWidth = 3;
     paint.color = Colors.green;
@@ -64,6 +71,10 @@ class Bezier {
   }
 
   bool move(DragUpdateDetails details, Size size) {
+    if (!visible) {
+      return false;
+    }
+
     if (sqrt(pow(
                 p1.getXScreen(size.width) +
                     details.delta.dx -
@@ -76,6 +87,7 @@ class Bezier {
                 2)) <
         pointSize) {
       p1.move(details.delta.dx, details.delta.dy, size.width, size.height);
+      p2.move(details.delta.dx, details.delta.dy, size.width, size.height);
       return true;
     }
     if (sqrt(pow(
@@ -118,6 +130,7 @@ class Bezier {
                 2)) <
         pointSize) {
       p4.move(details.delta.dx, details.delta.dy, size.width, size.height);
+      p3.move(details.delta.dx, details.delta.dy, size.width, size.height);
       return true;
     }
 
@@ -125,6 +138,10 @@ class Bezier {
   }
 
   bool isOver(details, Size size) {
+    if (!visible) {
+      return false;
+    }
+
     if (sqrt(pow(p1.getXScreen(size.width) - details.localPosition.dx, 2) +
             pow(p1.getYScreen(size.height) - details.localPosition.dy, 2)) <
         pointSize) {
@@ -156,10 +173,11 @@ class Bezier {
   }
 
   Map<String, dynamic> toJson() => {
+        "inverted": reversed,
         "paths": [p1, p2, p3, p4],
         "constraints": {
-          "velocity": pathMaxSpeed,
-          "accel": pathMaxAccel,
+          "velocity": pathMaxSpeed.round(),
+          "accel": pathMaxAccel.round(),
         }
       };
 }

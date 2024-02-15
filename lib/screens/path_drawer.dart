@@ -16,16 +16,18 @@ class PathDrawer extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     for (var element in bezier) {
-      Path path = element.getPath(size.width, size.height);
-      if (element.focused) {
-        paint.color = Colors.limeAccent;
-      } else if (element.reversed) {
-        paint.color = Colors.orange;
-      } else {
-        paint.color = Colors.blue;
+      if (element.visible) {
+        Path path = element.getPath(size.width, size.height);
+        if (element.focused) {
+          paint.color = Colors.limeAccent;
+        } else if (element.reversed) {
+          paint.color = Colors.orange;
+        } else {
+          paint.color = Colors.blue;
+        }
+        canvas.drawPath(path, paint);
+        element.drawCircles(canvas, size.width, size.height);
       }
-      canvas.drawPath(path, paint);
-      element.drawCircles(canvas, size.width, size.height);
     }
 
 
