@@ -38,6 +38,7 @@ dependencies:
   format: ^1.4.0
   path: ^1.8.3
   file_picker: ^6.1.1
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

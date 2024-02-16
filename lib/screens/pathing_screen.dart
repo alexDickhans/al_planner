@@ -48,11 +48,21 @@ class _PathingScreenState extends State<PathingScreen> {
   TextEditingController editingController = TextEditingController(text: "");
   bool allVisible = true;
 
+  void updateFile() {
+    widget.currentFile.readAsString().then((value) => {setData(value)});
+  }
+
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
+    updateFile();
+  }
 
-    widget.currentFile.readAsString().then((value) => {setData(value)});
+  @override
+  void didUpdateWidget(PathingScreen old) {
+    super.didUpdateWidget(old);
+    updateFile();
   }
 
   @override
@@ -75,11 +85,13 @@ class _PathingScreenState extends State<PathingScreen> {
                             (BuildContext context, BoxConstraints constraints) {
                           return GestureDetector(
                               onTapDown: (details) {
-                                if(RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+                                if (RawKeyboard.instance.keysPressed
+                                    .contains(LogicalKeyboardKey.shiftLeft)) {
                                   var newBeziers = beziers;
 
                                   newBeziers.removeWhere((element) {
-                                    return element.isOver(details, context.size!);
+                                    return element.isOver(
+                                        details, context.size!);
                                   });
 
                                   setState(() {
@@ -88,11 +100,13 @@ class _PathingScreenState extends State<PathingScreen> {
                                 }
                               },
                               onPanUpdate: (details) {
-                                if(RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+                                if (RawKeyboard.instance.keysPressed
+                                    .contains(LogicalKeyboardKey.shiftLeft)) {
                                   var newBeziers = beziers;
 
                                   newBeziers.removeWhere((element) {
-                                    return element.isOver(details, context.size!);
+                                    return element.isOver(
+                                        details, context.size!);
                                   });
 
                                   setState(() {
@@ -158,11 +172,26 @@ class _PathingScreenState extends State<PathingScreen> {
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          RawMaterialButton(
+                              constraints: const BoxConstraints(minWidth: 36.0, minHeight: 36.0),
+                              shape: RoundedRectangleBorder(
+                                  side: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(20)),
+                              fillColor: const Color(0xFFFF9700),
+                              onPressed: () {
+                                setState(() {
+                                  commands.removeAt(index);
+                                });
+                              },
+                              child: const Icon(Icons.remove)),
                           Expanded(
                               flex: 2,
                               child: Slider(
-                                divisions: 1000,
-                                  label: commands[index].t.toPrecision(2).toString(),
+                                  divisions: 1000,
+                                  label: commands[index]
+                                      .t
+                                      .toPrecision(2)
+                                      .toString(),
                                   max: beziers.length.toDouble(),
                                   value: commands[index].t,
                                   onChanged: (double value) {
@@ -222,15 +251,17 @@ class _PathingScreenState extends State<PathingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Default: "),
-                  Switch(value: allVisible, onChanged: (value) {
-                    setState(() {
-                      allVisible = value;
+                  Switch(
+                      value: allVisible,
+                      onChanged: (value) {
+                        setState(() {
+                          allVisible = value;
 
-                      for (var bezier in beziers) {
-                        bezier.visible = value;
-                      }
-                    });
-                  }),
+                          for (var bezier in beziers) {
+                            bezier.visible = value;
+                          }
+                        });
+                      }),
                   Expanded(
                     child: Slider(
                       divisions: maxSpeed.toInt(),
@@ -285,7 +316,9 @@ class _PathingScreenState extends State<PathingScreen> {
                                 onChanged: (bool value) {
                                   setState(() {
                                     beziers[index].visible = value;
-                                    allVisible = beziers.any((element) {return element.visible;});
+                                    allVisible = beziers.any((element) {
+                                      return element.visible;
+                                    });
                                   });
                                 },
                               ),
@@ -307,7 +340,10 @@ class _PathingScreenState extends State<PathingScreen> {
                               Expanded(
                                 child: Slider(
                                   divisions: maxSpeed.toInt(),
-                                  label: beziers[index].pathMaxSpeed.round().toString(),
+                                  label: beziers[index]
+                                      .pathMaxSpeed
+                                      .round()
+                                      .toString(),
                                   value: beziers[index].pathMaxSpeed,
                                   min: 0,
                                   max: maxSpeed,
@@ -321,7 +357,10 @@ class _PathingScreenState extends State<PathingScreen> {
                               Expanded(
                                 child: Slider(
                                   divisions: maxAccel.toInt(),
-                                  label: beziers[index].pathMaxAccel.round().toString(),
+                                  label: beziers[index]
+                                      .pathMaxAccel
+                                      .round()
+                                      .toString(),
                                   value: beziers[index].pathMaxAccel,
                                   min: 0,
                                   max: maxAccel,
