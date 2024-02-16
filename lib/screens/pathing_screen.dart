@@ -4,6 +4,7 @@ import 'package:al_planner/screens/path_drawer.dart';
 import 'package:al_planner/utils/double.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:io';
 
 import '../utils/bezier.dart';
 import '../utils/point.dart';
@@ -30,7 +31,10 @@ class Command {
 }
 
 class PathingScreen extends StatefulWidget {
-  const PathingScreen({super.key});
+  File currentFile = File("");
+  void Function(String) stringConsumer;
+
+  PathingScreen(this.currentFile, this.stringConsumer, {super.key});
 
   @override
   State<PathingScreen> createState() => _PathingScreenState();
@@ -43,6 +47,13 @@ class _PathingScreenState extends State<PathingScreen> {
   double defaultMaxAccel = 120;
   TextEditingController editingController = TextEditingController(text: "");
   bool allVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.currentFile.readAsString().then((value) => {setData(value)});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +346,9 @@ class _PathingScreenState extends State<PathingScreen> {
   }
 
   String getData() {
-    return jsonEncode(toJson());
+    String encoded = jsonEncode(toJson());
+    widget.stringConsumer.call(encoded);
+    return encoded;
   }
 
   Map<String, dynamic> toJson() => {
