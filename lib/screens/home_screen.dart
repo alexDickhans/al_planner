@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  int _uploadIndex = 0;
   final List<File> _fileOptions = <File>[];
   Directory directory = Directory("/");
   String currentJson = "";
@@ -61,6 +62,11 @@ class _HomeScreenState extends State<HomeScreen> {
           _fileOptions.add(File(event.path));
         });
       }
+    }).onDone(() {
+      setState(() {
+        _fileOptions
+            .sort((a, b) => absolute(a.path).compareTo(absolute(b.path)));
+      });
     });
   }
 
@@ -69,8 +75,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.secondary,
-          title: SelectableText(_fileOptions.isEmpty ? "Open path!" : basename(_fileOptions[_selectedIndex].path), onTap: () async {
-            await Clipboard.setData(ClipboardData(text: _fileOptions.isEmpty ? "Open path!" : basename(_fileOptions[_selectedIndex].path)));
+          title: SelectableText(
+              _fileOptions.isEmpty
+                  ? "Open path!"
+                  : basename(_fileOptions[_selectedIndex].path),
+              onTap: () async {
+            await Clipboard.setData(ClipboardData(
+                text: _fileOptions.isEmpty
+                    ? "Open path!"
+                    : basename(_fileOptions[_selectedIndex].path)));
             // copied successfully
           })),
       body: PlatformMenuBar(
@@ -104,6 +117,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     File file = _fileOptions[_selectedIndex];
                     file.writeAsStringSync(currentJson, flush: true);
                   }
+
+                  setState(() {
+                    buttonColor = const Color(0xFFFF9700);
+                  });
                 },
                 shortcut:
                     const SingleActivator(LogicalKeyboardKey.keyS, meta: true)),
@@ -127,8 +144,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         child: _fileOptions.isEmpty
             ? const Text("Choose File!", style: TextStyle(fontSize: 80))
-            : PathingScreen(_fileOptions[_selectedIndex],
-                (String value) => currentJson = value),
+            : PathingScreen(_fileOptions[_selectedIndex], (String value) {
+                currentJson = value;
+              }, false),
       ),
       drawer: Drawer(
         backgroundColor: const Color(0xfff5e6cf),
@@ -186,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
             showAlertDialog(context, rs.stdout);
           });
         },
-        child: Icon(Icons.play_arrow),
+        child: Text(_uploadIndex.toString()),
       ),
     );
   }

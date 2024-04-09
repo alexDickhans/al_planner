@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'point.dart';
 
 const double pointSize = 12;
-const double maxSpeed = 71;
-const double maxAccel = 200;
+const double maxSpeed = 76;
+const double maxAccel = 250;
 
 class Bezier {
   Point p1 = Point(0, 0);
@@ -19,12 +19,13 @@ class Bezier {
   bool reversed = false;
   bool focused = false;
   bool visible = true;
+  bool stopEnd = false;
 
   double pathMaxSpeed = maxSpeed;
   double pathMaxAccel = maxAccel;
 
   Bezier(
-      this.p1, this.p2, this.p3, this.p4, this.pathMaxSpeed, this.pathMaxAccel);
+      this.p1, this.p2, this.p3, this.p4, this.pathMaxSpeed, this.pathMaxAccel, this.stopEnd);
 
   Bezier.fromJson(Map<String, dynamic> json)
       : p1 = Point.fromJson(json['paths'][0]),
@@ -33,7 +34,8 @@ class Bezier {
         p4 = Point.fromJson(json['paths'][3]),
         pathMaxSpeed = json['constraints']['velocity'].toDouble(),
         pathMaxAccel = json['constraints']['accel'].toDouble(),
-        reversed = json['inverted'];
+        reversed = json['inverted'],
+        stopEnd = json.containsKey("stopEnd") ? json["stopEnd"] : false;
 
   Path getPath(width, height) {
     Path path = Path();
@@ -50,10 +52,6 @@ class Bezier {
 
   void drawCircles(Canvas canvas, width, height) {
 
-    if (!visible) {
-      return;
-    }
-
     Paint paint = Paint();
     paint.strokeWidth = 3;
     paint.color = Colors.green;
@@ -63,11 +61,15 @@ class Bezier {
     canvas.drawCircle(
         Offset(p2.getXScreen(width), p2.getYScreen(height)), pointSize, paint);
 
-    paint.color = Colors.red;
+    if(stopEnd) {
+      paint.color = Colors.deepOrangeAccent;
+    } else {
+      paint.color = Colors.red;
+    }
     canvas.drawCircle(
-        Offset(p3.getXScreen(width), p3.getYScreen(height)), pointSize, paint);
+        Offset(p3.getXScreen(width), p3.getYScreen(height)), pointSize-2, paint);
     canvas.drawCircle(
-        Offset(p4.getXScreen(width), p4.getYScreen(height)), pointSize, paint);
+        Offset(p4.getXScreen(width), p4.getYScreen(height)), pointSize-2, paint);
   }
 
   bool move(DragUpdateDetails details, Size size) {
@@ -174,6 +176,7 @@ class Bezier {
 
   Map<String, dynamic> toJson() => {
         "inverted": reversed,
+        "stopEnd": stopEnd,
         "paths": [p1, p2, p3, p4],
         "constraints": {
           "velocity": pathMaxSpeed.round(),

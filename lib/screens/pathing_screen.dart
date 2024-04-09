@@ -2,8 +2,11 @@ import 'dart:convert';
 
 import 'package:al_planner/screens/path_drawer.dart';
 import 'package:al_planner/utils/double.dart';
+import 'package:al_planner/utils/robot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
+import 'package:flutter_client_sse/flutter_client_sse.dart';
 import 'dart:io';
 
 import '../utils/bezier.dart';
@@ -33,8 +36,10 @@ class Command {
 class PathingScreen extends StatefulWidget {
   File currentFile = File("");
   void Function(String) stringConsumer;
+  bool liveRobot = false;
 
-  PathingScreen(this.currentFile, this.stringConsumer, {super.key});
+  PathingScreen(this.currentFile, this.stringConsumer, this.liveRobot,
+      {super.key});
 
   @override
   State<PathingScreen> createState() => _PathingScreenState();
@@ -43,10 +48,13 @@ class PathingScreen extends StatefulWidget {
 class _PathingScreenState extends State<PathingScreen> {
   List<Bezier> beziers = [];
   List<Command> commands = [];
+  List<RobotPosition> robots = [];
   double defaultMaxSpeed = maxSpeed;
   double defaultMaxAccel = 120;
   TextEditingController editingController = TextEditingController(text: "");
   bool allVisible = true;
+  double startSpeed = 0.0;
+  double endSpeed = 0.0;
 
   void updateFile() {
     widget.currentFile.readAsString().then((value) => {setData(value)});
@@ -54,9 +62,29 @@ class _PathingScreenState extends State<PathingScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     updateFile();
+
+    if (widget.liveRobot) {
+      SSEClient.subscribeToSSE(
+          method: SSERequestType.GET,
+          url: 'http://192.168.4.1/uart0',
+          header: {
+            "Accept": "text/event-stream",
+          }).listen(
+        (event) {
+          // var jData = jsonDecode(event.data!);
+          print('Id: ' + event.id!);
+          print('Event: ' + event.event!);
+          print(event.data!);
+          var jData = jsonDecode(event.data!);
+          setState(() {
+            robots.clear();
+            robots.add(RobotPosition(jData[0], jData[1], jData[2]));
+          });
+        },
+      );
+    }
   }
 
   @override
@@ -72,6 +100,38 @@ class _PathingScreenState extends State<PathingScreen> {
         padding: const EdgeInsets.only(top: 15),
         child: Column(
           children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: startSpeed,
+                    label: startSpeed.round().toString(),
+                    divisions: 12,
+                    min: -72.0,
+                    max: 72.0,
+                    onChanged: (double value) {
+                      setState(() {
+                        startSpeed = value;
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: Slider(
+                    value: endSpeed,
+                    label: endSpeed.round().toString(),
+                    divisions: 12,
+                    min: -72.0,
+                    max: 72.0,
+                    onChanged: (double value) {
+                      setState(() {
+                        endSpeed = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
             AspectRatio(
                 aspectRatio: 16 / 9,
                 child: Row(
@@ -137,11 +197,12 @@ class _PathingScreenState extends State<PathingScreen> {
                                       Point.fromOffset(
                                           details.localPosition, context.size!),
                                       defaultMaxSpeed,
-                                      defaultMaxAccel));
+                                      defaultMaxAccel,
+                                      false));
                                 });
                               },
                               child: CustomPaint(
-                                foregroundPainter: PathDrawer(beziers),
+                                foregroundPainter: PathDrawer(beziers, robots),
                                 child: Image.asset('assets/field.png'),
                               ));
                         },
@@ -173,7 +234,8 @@ class _PathingScreenState extends State<PathingScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           RawMaterialButton(
-                              constraints: const BoxConstraints(minWidth: 36.0, minHeight: 36.0),
+                              constraints: const BoxConstraints(
+                                  minWidth: 36.0, minHeight: 36.0),
                               shape: RoundedRectangleBorder(
                                   side: BorderSide.none,
                                   borderRadius: BorderRadius.circular(20)),
@@ -213,16 +275,25 @@ class _PathingScreenState extends State<PathingScreen> {
                     }),
               ),
             ]),
-            LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                editingController.text = getData();
-                return TextField(
-                  controller: editingController,
-                  onSubmitted: (value) {
-                    setData(value);
-                  },
-                );
-              },
+            Container(
+              padding: const EdgeInsets.only(bottom: 100),
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  editingController.text = getData();
+                  return TextField(
+                    keyboardType: TextInputType.multiline,
+                    controller: editingController,
+                    onSubmitted: (value) {
+                      setData(value);
+                    },
+                    // onTapOutside: (value) {
+                    //   setData(value);
+                    // },
+                    maxLines: 1200,
+                    minLines: 5,
+                  );
+                },
+              ),
             )
           ],
         ),
@@ -311,31 +382,44 @@ class _PathingScreenState extends State<PathingScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Switch(
-                                value: beziers[index].visible,
-                                onChanged: (bool value) {
+                              MouseRegion(
+                                onEnter: (value) {
                                   setState(() {
-                                    beziers[index].visible = value;
-                                    allVisible = beziers.any((element) {
-                                      return element.visible;
-                                    });
+                                    beziers[index].focused = true;
                                   });
                                 },
-                              ),
-                              Focus(
-                                onFocusChange: (value) {
+                                onExit: (value) {
                                   setState(() {
-                                    beziers[index].focused = value;
+                                    beziers[index].focused = false;
                                   });
                                 },
                                 child: Switch(
-                                  value: beziers[index].reversed,
+                                  value: beziers[index].visible,
                                   onChanged: (bool value) {
                                     setState(() {
-                                      beziers[index].reversed = value;
+                                      beziers[index].visible = value;
+                                      allVisible = beziers.any((element) {
+                                        return element.visible;
+                                      });
                                     });
                                   },
                                 ),
+                              ),
+                              Switch(
+                                value: beziers[index].stopEnd,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    beziers[index].stopEnd = value;
+                                  });
+                                },
+                              ),
+                              Switch(
+                                value: beziers[index].reversed,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    beziers[index].reversed = value;
+                                  });
+                                },
                               ),
                               Expanded(
                                 child: Slider(
@@ -385,12 +469,14 @@ class _PathingScreenState extends State<PathingScreen> {
   }
 
   String getData() {
-    String encoded = jsonEncode(toJson());
+    String encoded = const JsonEncoder.withIndent('  ').convert(toJson());
     widget.stringConsumer.call(encoded);
     return encoded;
   }
 
   Map<String, dynamic> toJson() => {
+        "startSpeed": startSpeed,
+        "endSpeed": endSpeed,
         "segments": beziers,
         "commands": commands,
       };
@@ -398,6 +484,9 @@ class _PathingScreenState extends State<PathingScreen> {
   void setData(String data) {
     setState(() {
       final parsedData = jsonDecode(data) as Map<String, dynamic>;
+
+      startSpeed = parsedData.containsKey("startSpeed") ? parsedData["startSpeed"] : 0.0;
+      endSpeed = parsedData.containsKey("endSpeed") ? parsedData["endSpeed"] : 0.0;
 
       List<Bezier> newBeziers = [];
       List<Command> newCommands = [];
