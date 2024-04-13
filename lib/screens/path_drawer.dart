@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:al_planner/screens/pathing_screen.dart';
 import 'package:flutter/material.dart';
 import '../utils/bezier.dart';
 import '../utils/robot.dart';
@@ -8,8 +9,9 @@ class PathDrawer extends CustomPainter {
 
   List<Bezier> bezier;
   List<RobotPosition> robots;
+  List<double> commandDots;
 
-  PathDrawer(this.bezier, this.robots);
+  PathDrawer(this.bezier, this.robots, this.commandDots);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -37,6 +39,13 @@ class PathDrawer extends CustomPainter {
     for (var robot in robots) {
       canvas.drawCircle(robot.getRobotScreenPosition(size), 5, paint);
       canvas.drawLine(robot.getRobotScreenPosition(size), robot.getRobotScreenPosition(size) + Offset.fromDirection(-robot.angle - pi/2, 20.0), paint);
+    }
+
+    for (var command in commandDots) {
+      if (0 <= command && bezier.length >= command) {
+        paint.color = Colors.yellow;
+        canvas.drawCircle(bezier[command.toInt().clamp(0, bezier.length-1)].evaluate(command % 1.00001).getOffset(size), 5, paint);
+      }
     }
   }
 

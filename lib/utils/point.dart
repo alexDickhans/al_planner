@@ -44,6 +44,10 @@ class Point {
     return y;
   }
 
+  Point lerp(Point a, double t) {
+    return Point(x * (1.0 - t) + a.x * t, y * (1.0 - t) + a.y * t);
+  }
+
   void move(double x, double y, double width, double height) {
     this.x += y * fieldWidth / width;
     this.y += x * fieldWidth / height;

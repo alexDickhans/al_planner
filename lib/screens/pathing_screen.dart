@@ -202,7 +202,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                 });
                               },
                               child: CustomPaint(
-                                foregroundPainter: PathDrawer(beziers, robots),
+                                foregroundPainter: PathDrawer(beziers, robots, commands.map((e) => e.t).toList()),
                                 child: Image.asset('assets/field.png'),
                               ));
                         },
@@ -255,6 +255,11 @@ class _PathingScreenState extends State<PathingScreen> {
                                       .toPrecision(2)
                                       .toString(),
                                   max: beziers.length.toDouble(),
+                                  onChangeEnd: (_) {
+                                    setState(() {
+                                      commands.sort((a, b) => a.t.compareTo(b.t));
+                                    });
+                                  },
                                   value: commands[index].t,
                                   onChanged: (double value) {
                                     setState(() {
@@ -474,12 +479,14 @@ class _PathingScreenState extends State<PathingScreen> {
     return encoded;
   }
 
-  Map<String, dynamic> toJson() => {
-        "startSpeed": startSpeed,
-        "endSpeed": endSpeed,
-        "segments": beziers,
-        "commands": commands,
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      "startSpeed": startSpeed,
+      "endSpeed": endSpeed,
+      "segments": beziers,
+      "commands": commands,
+    };
+  }
 
   void setData(String data) {
     setState(() {

@@ -72,6 +72,15 @@ class Bezier {
         Offset(p4.getXScreen(width), p4.getYScreen(height)), pointSize-2, paint);
   }
 
+  Point evaluate(double t) {
+    Point p5 = p1.lerp(p2, t);
+    Point p6 = p2.lerp(p3, t);
+    Point p7 = p3.lerp(p4, t);
+    Point p8 = p5.lerp(p6, t);
+    Point p9 = p6.lerp(p7, t);
+    return p8.lerp(p9, t);
+  }
+
   bool move(DragUpdateDetails details, Size size) {
     if (!visible) {
       return false;
