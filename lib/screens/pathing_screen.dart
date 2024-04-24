@@ -28,7 +28,7 @@ class Command {
   }
 
   Map<String, dynamic> toJson() => {
-        't': t.toPrecision(2),
+        't': t.toPrecision(3),
         'name': name,
       };
 }
@@ -252,7 +252,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                   divisions: 1000,
                                   label: commands[index]
                                       .t
-                                      .toPrecision(2)
+                                      .toPrecision(3)
                                       .toString(),
                                   max: beziers.length.toDouble(),
                                   onChangeEnd: (_) {
