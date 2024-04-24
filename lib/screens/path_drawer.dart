@@ -44,7 +44,9 @@ class PathDrawer extends CustomPainter {
     for (var command in commandDots) {
       if (0 <= command && bezier.length >= command) {
         paint.color = Colors.yellow;
-        canvas.drawCircle(bezier[command.toInt().clamp(0, bezier.length-1)].evaluate(command % 1.00001).getOffset(size), 5, paint);
+        if (bezier[command.toInt()].visible) {
+          canvas.drawCircle(bezier[command.toInt().clamp(0, bezier.length-1)].evaluate(command % 1.00001).getOffset(size), 5, paint);
+        }
       }
     }
   }
