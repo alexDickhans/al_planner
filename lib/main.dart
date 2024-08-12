@@ -1,5 +1,4 @@
 import 'package:al_planner/screens/home_screen.dart';
-import 'package:al_planner/screens/pathing_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {

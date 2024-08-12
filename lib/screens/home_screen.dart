@@ -1,4 +1,3 @@
-import 'dart:ffi';
 
 import 'package:al_planner/screens/pathing_screen.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'package:path/path.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Directory directory = Directory("/");
   String currentJson = "";
 
-  Color buttonColor = Color(0xffff9700);
+  Color buttonColor = const Color(0xffff9700);
 
   @override
   void initState() {

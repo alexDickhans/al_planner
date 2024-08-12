@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:al_planner/screens/pathing_screen.dart';
 import 'package:flutter/material.dart';
 import '../utils/bezier.dart';
 import '../utils/robot.dart';

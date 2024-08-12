@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
 import 'package:flutter_client_sse/flutter_client_sse.dart';
+import 'package:flutter_svg/svg.dart';
 import 'dart:io';
 
 import '../utils/bezier.dart';
@@ -55,6 +56,7 @@ class _PathingScreenState extends State<PathingScreen> {
   bool allVisible = true;
   double startSpeed = 0.0;
   double endSpeed = 0.0;
+  bool isSkills = false;
 
   void updateFile() {
     widget.currentFile.readAsString().then((value) => {setData(value)});
@@ -74,8 +76,8 @@ class _PathingScreenState extends State<PathingScreen> {
           }).listen(
         (event) {
           // var jData = jsonDecode(event.data!);
-          print('Id: ' + event.id!);
-          print('Event: ' + event.event!);
+          print('Id: ${event.id!}');
+          print('Event: ${event.event!}');
           print(event.data!);
           var jData = jsonDecode(event.data!);
           setState(() {
@@ -102,6 +104,11 @@ class _PathingScreenState extends State<PathingScreen> {
           children: [
             Row(
               children: [
+                Switch(value: isSkills, onChanged: (value) {
+                  setState(() {
+                    isSkills = value;
+                  });
+                }),
                 Expanded(
                   child: Slider(
                     value: startSpeed,
@@ -145,9 +152,9 @@ class _PathingScreenState extends State<PathingScreen> {
                             (BuildContext context, BoxConstraints constraints) {
                           return GestureDetector(
                               onTapDown: (details) {
-                                if (RawKeyboard.instance.keysPressed
-                                    .contains(LogicalKeyboardKey.shiftLeft)) {
+                                if (HardwareKeyboard.instance.isPhysicalKeyPressed(PhysicalKeyboardKey.shiftLeft)) {
                                   var newBeziers = beziers;
+
 
                                   newBeziers.removeWhere((element) {
                                     return element.isOver(
@@ -160,8 +167,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                 }
                               },
                               onPanUpdate: (details) {
-                                if (RawKeyboard.instance.keysPressed
-                                    .contains(LogicalKeyboardKey.shiftLeft)) {
+                                if (HardwareKeyboard.instance.isPhysicalKeyPressed(PhysicalKeyboardKey.shiftLeft)) {
                                   var newBeziers = beziers;
 
                                   newBeziers.removeWhere((element) {
@@ -203,7 +209,7 @@ class _PathingScreenState extends State<PathingScreen> {
                               },
                               child: CustomPaint(
                                 foregroundPainter: PathDrawer(beziers, robots, commands.map((e) => e.t).toList()),
-                                child: Image.asset('assets/field.png'),
+                                child: isSkills ? Image.asset('assets/skills.png') : Image.asset('assets/match.png'),
                               ));
                         },
                       )),
@@ -316,7 +322,7 @@ class _PathingScreenState extends State<PathingScreen> {
         height: 1000,
         width: 100,
         child: Padding(
-          padding: EdgeInsets.all(10),
+          padding: const EdgeInsets.all(10),
           child: Column(
             children: [
               const Text(
