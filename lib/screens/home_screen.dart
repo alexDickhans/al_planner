@@ -119,22 +119,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   // copied successfully
                 }),
               ),
-              Expanded(
-                flex: 1,
-                child: TextField(
-                  controller: TextEditingController(text: _uploadIndex.toString()),
-                  onSubmitted: (newUploadIndex) {
-                    setState(() {
-                      _uploadIndex = int.parse(newUploadIndex);
-                    });
-                  },
-                  decoration: const InputDecoration(labelText: "Enter auton number"),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.digitsOnly
-                  ], // Only numbers can be entered
-                ),
-              ),
             ],
           )),
       body: PlatformMenuBar(
@@ -204,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ? const Text("Choose File!", style: TextStyle(fontSize: 80))
             : PathingScreen(_fileOptions[_selectedIndex], (String value) {
                 currentJson = value;
-              }, false),
+              }, true),
       ),
       drawer: Drawer(
         backgroundColor: const Color(0xfff5e6cf),

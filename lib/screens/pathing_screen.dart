@@ -37,7 +37,7 @@ class Command {
 class PathingScreen extends StatefulWidget {
   File currentFile = File("");
   void Function(String) stringConsumer;
-  bool liveRobot = false;
+  bool liveRobot = true;
 
   PathingScreen(this.currentFile, this.stringConsumer, this.liveRobot,
       {super.key});
@@ -66,7 +66,7 @@ class _PathingScreenState extends State<PathingScreen> {
   void initState() {
     super.initState();
     updateFile();
-
+    
     if (widget.liveRobot) {
       SSEClient.subscribeToSSE(
           method: SSERequestType.GET,
@@ -75,16 +75,26 @@ class _PathingScreenState extends State<PathingScreen> {
             "Accept": "text/event-stream",
           }).listen(
         (event) {
-          // var jData = jsonDecode(event.data!);
-          print('Id: ${event.id!}');
-          print('Event: ${event.event!}');
           print(event.data!);
-          var jData = jsonDecode(event.data!);
-          setState(() {
-            robots.clear();
-            robots.add(RobotPosition(jData[0], jData[1], jData[2]));
-          });
+          if (!event.data!.contains("#")) {
+
+            var jData = jsonDecode(event.data!);
+            print(jData);
+
+            setState(() {
+              robots.clear();
+              for (var robot in jData) {
+                robots.add(RobotPosition(robot[0], robot[1], robot[2]));
+              }
+            });
+          }
         },
+        onError: (error) {
+          
+        },
+        onDone: () {
+
+        }
       );
     }
   }

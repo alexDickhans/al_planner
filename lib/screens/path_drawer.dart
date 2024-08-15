@@ -35,6 +35,8 @@ class PathDrawer extends CustomPainter {
       }
     }
 
+    paint.color = Colors.black;
+
     for (var robot in robots) {
       canvas.drawCircle(robot.getRobotScreenPosition(size), 5, paint);
       canvas.drawLine(robot.getRobotScreenPosition(size), robot.getRobotScreenPosition(size) + Offset.fromDirection(-robot.angle - pi/2, 20.0), paint);
