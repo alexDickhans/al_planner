@@ -1,6 +1,8 @@
 import 'dart:core';
 import 'dart:math';
 
+import 'package:al_planner/screens/pathing_screen.dart';
+import 'package:al_planner/utils/double.dart';
 import 'package:flutter/material.dart';
 
 import 'point.dart';
@@ -30,8 +32,8 @@ class Bezier {
         p2 = Point.fromJson(json['paths'][1]),
         p3 = Point.fromJson(json['paths'][2]),
         p4 = Point.fromJson(json['paths'][3]),
-        pathMaxSpeed = json['constraints']['velocity'].toDouble(),
-        pathMaxAccel = json['constraints']['accel'].toDouble(),
+        pathMaxSpeed = json['constraints']['velocity'].toDouble() * 39.37,
+        pathMaxAccel = json['constraints']['accel'].toDouble() * 39.37,
         reversed = json['inverted'],
         stopEnd = json.containsKey("stopEnd") ? json["stopEnd"] : false;
 
@@ -186,8 +188,8 @@ class Bezier {
         "stopEnd": stopEnd,
         "paths": [p1, p2, p3, p4],
         "constraints": {
-          "velocity": pathMaxSpeed.round(),
-          "accel": pathMaxAccel.round(),
+          "velocity": (pathMaxSpeed/39.37).toPrecision(3),
+          "accel": (pathMaxAccel/39.37).toPrecision(3),
         }
       };
 }

@@ -11,8 +11,8 @@ class Point {
   Point(this.x, this.y);
 
   Point.fromOffset(Offset offset, Size size)
-      : x = offset.dy * fieldWidth / size.width,
-        y = offset.dx * fieldWidth / size.height;
+      : x = -offset.dy * fieldWidth / size.width + fieldWidth / 2,
+        y = -offset.dx * fieldWidth / size.height + fieldWidth / 2;
 
   Point.fromJson(Map<String, dynamic> json)
       : x = json['x'] as double,
@@ -24,11 +24,11 @@ class Point {
       };
 
   double getXScreen(double width) {
-    return y * width / fieldWidth;
+    return -y * width / fieldWidth + width/2;
   }
 
   double getYScreen(double height) {
-    return x * height / fieldWidth;
+    return -x * height / fieldWidth + height/2;
   }
 
   Offset getOffset(Size size) {
@@ -48,12 +48,12 @@ class Point {
   }
 
   void move(double x, double y, double width, double height) {
-    this.x += y * fieldWidth / width;
-    this.y += x * fieldWidth / height;
+    this.x -= y * fieldWidth / width;
+    this.y -= x * fieldWidth / height;
   }
 
   @override
   String toString() {
-    return "x: {:.1f}, y: {:.1f}".format(x * 39.37, y * 39.37);
+    return "x: {:.1f}, y: {:.1f}".format(x, y);
   }
 }

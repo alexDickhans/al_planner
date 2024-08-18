@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
 import 'package:flutter_client_sse/flutter_client_sse.dart';
-import 'package:flutter_svg/svg.dart';
 import 'dart:io';
 
 import '../utils/bezier.dart';
@@ -114,11 +113,18 @@ class _PathingScreenState extends State<PathingScreen> {
           children: [
             Row(
               children: [
-                Switch(value: isSkills, onChanged: (value) {
-                  setState(() {
-                    isSkills = value;
-                  });
-                }),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: IconButton.filledTonal(
+                      isSelected: isSkills,
+                      icon: const Icon(Icons.groups),
+                      selectedIcon: const Icon(Icons.person),
+                      onPressed: () {
+                    setState(() {
+                      isSkills = !isSkills;
+                    });
+                  }),
+                ),
                 Expanded(
                   child: Slider(
                     value: startSpeed,
@@ -232,13 +238,13 @@ class _PathingScreenState extends State<PathingScreen> {
                   ],
                 )),
             Column(children: [
-              ElevatedButton(
+              IconButton.filledTonal(
                 onPressed: () {
                   setState(() {
                     commands.add(Command(0.0, "change"));
                   });
                 },
-                child: const Icon(Icons.add),
+                icon: const Icon(Icons.add),
               ),
               SizedBox(
                 width: 1600,
@@ -324,9 +330,8 @@ class _PathingScreenState extends State<PathingScreen> {
 
   Container buildVelConstraints(BuildContext context) {
     return Container(
-      // color: Theme.of(context).focusColor,
       decoration: const BoxDecoration(
-          color: Color(0xfff5e6cf),
+          color: Color(0xfff5eddf),
           borderRadius: BorderRadius.all(Radius.circular(20))),
       child: SizedBox(
         height: 1000,
@@ -337,23 +342,34 @@ class _PathingScreenState extends State<PathingScreen> {
             children: [
               const Text(
                 "Velocity, Accel",
+                textAlign: TextAlign.end,
                 style: TextStyle(fontSize: 30),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Default: "),
-                  Switch(
-                      value: allVisible,
-                      onChanged: (value) {
-                        setState(() {
-                          allVisible = value;
+                  IconButton.filledTonal(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    isSelected: allVisible,
+                    icon: const Icon(Icons.visibility_off_outlined),
+                    selectedIcon: const Icon(Icons.visibility),
+                    onPressed: () {
+                      setState(() {
+                        allVisible = !allVisible;
 
-                          for (var bezier in beziers) {
-                            bezier.visible = value;
-                          }
-                        });
-                      }),
+                        for (var bezier in beziers) {
+                          bezier.visible = allVisible;
+                        }
+                      });
+                    },
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 20),
+                    child: Text(
+                        "Default: ",
+                        textScaler: TextScaler.linear(2),
+                    ),
+                  ),
                   Expanded(
                     child: Slider(
                       divisions: maxSpeed.toInt(),
@@ -397,86 +413,96 @@ class _PathingScreenState extends State<PathingScreen> {
                   child: ListView.builder(
                       itemCount: beziers.length,
                       itemBuilder: (BuildContext context, int index) {
-                        return SizedBox(
-                          height: 30,
-                          width: 600,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              MouseRegion(
-                                onEnter: (value) {
-                                  setState(() {
-                                    beziers[index].focused = true;
-                                  });
-                                },
-                                onExit: (value) {
-                                  setState(() {
-                                    beziers[index].focused = false;
-                                  });
-                                },
-                                child: Switch(
-                                  value: beziers[index].visible,
-                                  onChanged: (bool value) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: SizedBox(
+                            height: 40,
+                            width: 600,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                MouseRegion(
+                                  onEnter: (value) {
                                     setState(() {
-                                      beziers[index].visible = value;
-                                      allVisible = beziers.any((element) {
-                                        return element.visible;
+                                      beziers[index].focused = true;
+                                    });
+                                  },
+                                  onExit: (value) {
+                                    setState(() {
+                                      beziers[index].focused = false;
+                                    });
+                                  },
+                                  child: IconButton.filledTonal(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                                    isSelected: beziers[index].visible,
+                                    icon: const Icon(Icons.visibility_off_outlined),
+                                    selectedIcon: const Icon(Icons.visibility),
+                                    onPressed: () {
+                                      setState(() {
+                                        beziers[index].visible = !beziers[index].visible;
+                                        allVisible = beziers.any((element) {
+                                          return element.visible;
+                                        });
                                       });
-                                    });
-                                  },
+                                    },
+                                  ),
                                 ),
-                              ),
-                              Switch(
-                                value: beziers[index].stopEnd,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    beziers[index].stopEnd = value;
-                                  });
-                                },
-                              ),
-                              Switch(
-                                value: beziers[index].reversed,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    beziers[index].reversed = value;
-                                  });
-                                },
-                              ),
-                              Expanded(
-                                child: Slider(
-                                  divisions: maxSpeed.toInt(),
-                                  label: beziers[index]
-                                      .pathMaxSpeed
-                                      .round()
-                                      .toString(),
-                                  value: beziers[index].pathMaxSpeed,
-                                  min: 0,
-                                  max: maxSpeed,
-                                  onChanged: (double value) {
+                                IconButton.filledTonal(
+                                  isSelected: beziers[index].stopEnd,
+                                  icon: const Icon(Icons.arrow_right_alt),
+                                  selectedIcon: const Icon(Icons.keyboard_tab),
+                                  onPressed: () {
                                     setState(() {
-                                      beziers[index].pathMaxSpeed = value;
+                                      beziers[index].stopEnd = !beziers[index].stopEnd;
                                     });
                                   },
                                 ),
-                              ),
-                              Expanded(
-                                child: Slider(
-                                  divisions: maxAccel.toInt(),
-                                  label: beziers[index]
-                                      .pathMaxAccel
-                                      .round()
-                                      .toString(),
-                                  value: beziers[index].pathMaxAccel,
-                                  min: 0,
-                                  max: maxAccel,
-                                  onChanged: (double value) {
+                                IconButton.filledTonal(
+                                  isSelected: beziers[index].reversed,
+                                  icon: const Icon(Icons.arrow_forward),
+                                  selectedIcon: const Icon(Icons.arrow_back),
+                                  onPressed: () {
                                     setState(() {
-                                      beziers[index].pathMaxAccel = value;
+                                      beziers[index].reversed = !beziers[index].reversed;
                                     });
                                   },
                                 ),
-                              ),
-                            ],
+                                Expanded(
+                                  child: Slider(
+                                    divisions: maxSpeed.toInt(),
+                                    label: beziers[index]
+                                        .pathMaxSpeed
+                                        .round()
+                                        .toString(),
+                                    value: beziers[index].pathMaxSpeed,
+                                    min: 0,
+                                    max: maxSpeed,
+                                    onChanged: (double value) {
+                                      setState(() {
+                                        beziers[index].pathMaxSpeed = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Slider(
+                                    divisions: maxAccel.toInt(),
+                                    label: beziers[index]
+                                        .pathMaxAccel
+                                        .round()
+                                        .toString(),
+                                    value: beziers[index].pathMaxAccel,
+                                    min: 0,
+                                    max: maxAccel,
+                                    onChanged: (double value) {
+                                      setState(() {
+                                        beziers[index].pathMaxAccel = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }),
