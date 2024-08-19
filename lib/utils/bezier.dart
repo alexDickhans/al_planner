@@ -2,6 +2,7 @@ import 'dart:core';
 import 'dart:math';
 
 import 'package:al_planner/screens/pathing_screen.dart';
+import 'package:al_planner/src/rust/third_party/motion_profiling/path.dart' as path;
 import 'package:al_planner/utils/double.dart';
 import 'package:flutter/material.dart';
 
@@ -24,18 +25,18 @@ class Bezier {
   double pathMaxSpeed = maxSpeed;
   double pathMaxAccel = maxAccel;
 
-  Bezier(
-      this.p1, this.p2, this.p3, this.p4, this.pathMaxSpeed, this.pathMaxAccel, this.stopEnd);
+  Bezier(this.p1, this.p2, this.p3, this.p4, this.pathMaxSpeed,
+      this.pathMaxAccel, this.stopEnd);
 
   Bezier.fromJson(Map<String, dynamic> json)
-      : p1 = Point.fromJson(json['paths'][0]),
-        p2 = Point.fromJson(json['paths'][1]),
-        p3 = Point.fromJson(json['paths'][2]),
-        p4 = Point.fromJson(json['paths'][3]),
+      : p1 = Point.fromJson(json['path'][0]),
+        p2 = Point.fromJson(json['path'][1]),
+        p3 = Point.fromJson(json['path'][2]),
+        p4 = Point.fromJson(json['path'][3]),
         pathMaxSpeed = json['constraints']['velocity'].toDouble() * 39.37,
         pathMaxAccel = json['constraints']['accel'].toDouble() * 39.37,
         reversed = json['inverted'],
-        stopEnd = json.containsKey("stopEnd") ? json["stopEnd"] : false;
+        stopEnd = json.containsKey("stop_end") ? json["stop_end"] : false;
 
   Path getPath(width, height) {
     Path path = Path();
@@ -51,7 +52,6 @@ class Bezier {
   }
 
   void drawCircles(Canvas canvas, width, height) {
-
     Paint paint = Paint();
     paint.strokeWidth = 3;
     paint.color = Colors.green;
@@ -61,15 +61,15 @@ class Bezier {
     canvas.drawCircle(
         Offset(p2.getXScreen(width), p2.getYScreen(height)), pointSize, paint);
 
-    if(stopEnd) {
+    if (stopEnd) {
       paint.color = Colors.deepOrangeAccent;
     } else {
       paint.color = Colors.red;
     }
-    canvas.drawCircle(
-        Offset(p3.getXScreen(width), p3.getYScreen(height)), pointSize-2, paint);
-    canvas.drawCircle(
-        Offset(p4.getXScreen(width), p4.getYScreen(height)), pointSize-2, paint);
+    canvas.drawCircle(Offset(p3.getXScreen(width), p3.getYScreen(height)),
+        pointSize - 2, paint);
+    canvas.drawCircle(Offset(p4.getXScreen(width), p4.getYScreen(height)),
+        pointSize - 2, paint);
   }
 
   Point evaluate(double t) {
@@ -185,11 +185,15 @@ class Bezier {
 
   Map<String, dynamic> toJson() => {
         "inverted": reversed,
-        "stopEnd": stopEnd,
-        "paths": [p1, p2, p3, p4],
+        "stop_end": stopEnd,
+        "path": [p1, p2, p3, p4],
         "constraints": {
-          "velocity": (pathMaxSpeed/39.37).toPrecision(3),
-          "accel": (pathMaxAccel/39.37).toPrecision(3),
+          "velocity": (pathMaxSpeed / 39.37).toPrecision(3),
+          "accel": (pathMaxAccel / 39.37).toPrecision(3),
         }
       };
+
+  path.PathSegment toPathSegment() {
+    return path.PathSegment(inverted: reversed, stopEnd: stopEnd, path: [p1.toPoint(), p2.toPoint(), p3.toPoint(), p4.toPoint()]);
+  }
 }

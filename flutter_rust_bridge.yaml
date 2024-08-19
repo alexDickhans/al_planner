@@ -1,0 +1,3 @@
+rust_input: crate::api,motion_profiling::path
+rust_root: rust/
+dart_output: lib/src/rust

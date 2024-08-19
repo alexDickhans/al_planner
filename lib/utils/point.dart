@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:al_planner/utils/double.dart';
 import 'package:format/format.dart';
+import 'package:al_planner/src/rust/third_party/motion_profiling/path.dart' as path;
 
 const double fieldWidth = 3.65;
 
@@ -24,11 +25,11 @@ class Point {
       };
 
   double getXScreen(double width) {
-    return -y * width / fieldWidth + width/2;
+    return -y * width / fieldWidth + width / 2;
   }
 
   double getYScreen(double height) {
-    return -x * height / fieldWidth + height/2;
+    return -x * height / fieldWidth + height / 2;
   }
 
   Offset getOffset(Size size) {
@@ -55,5 +56,9 @@ class Point {
   @override
   String toString() {
     return "x: {:.1f}, y: {:.1f}".format(x, y);
+  }
+
+  path.Point toPoint() {
+    return path.Point(x: x, y: y);
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:al_planner/screens/path_drawer.dart';
+import 'package:al_planner/src/rust/third_party/motion_profiling/path.dart' as path;
 import 'package:al_planner/utils/double.dart';
 import 'package:al_planner/utils/robot.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,9 @@ import 'dart:io';
 
 import '../utils/bezier.dart';
 import '../utils/point.dart';
+
+import '../src/rust/api/simple.dart';
+import '../src/rust/frb_generated.dart';
 
 class Command {
   double t = 0;
@@ -65,36 +69,27 @@ class _PathingScreenState extends State<PathingScreen> {
   void initState() {
     super.initState();
     updateFile();
-    
+
     if (widget.liveRobot) {
       SSEClient.subscribeToSSE(
           method: SSERequestType.GET,
           url: 'http://192.168.4.1/uart0',
           header: {
             "Accept": "text/event-stream",
-          }).listen(
-        (event) {
-          print(event.data!);
-          if (!event.data!.contains("#")) {
+          }).listen((event) {
+        print(event.data!);
+        if (!event.data!.contains("#")) {
+          var jData = jsonDecode(event.data!);
+          print(jData);
 
-            var jData = jsonDecode(event.data!);
-            print(jData);
-
-            setState(() {
-              robots.clear();
-              for (var robot in jData) {
-                robots.add(RobotPosition(robot[0], robot[1], robot[2]));
-              }
-            });
-          }
-        },
-        onError: (error) {
-          
-        },
-        onDone: () {
-
+          setState(() {
+            robots.clear();
+            for (var robot in jData) {
+              robots.add(RobotPosition(robot[0], robot[1], robot[2]));
+            }
+          });
         }
-      );
+      }, onError: (error) {}, onDone: () {});
     }
   }
 
@@ -120,10 +115,10 @@ class _PathingScreenState extends State<PathingScreen> {
                       icon: const Icon(Icons.groups),
                       selectedIcon: const Icon(Icons.person),
                       onPressed: () {
-                    setState(() {
-                      isSkills = !isSkills;
-                    });
-                  }),
+                        setState(() {
+                          isSkills = !isSkills;
+                        });
+                      }),
                 ),
                 Expanded(
                   child: Slider(
@@ -168,9 +163,10 @@ class _PathingScreenState extends State<PathingScreen> {
                             (BuildContext context, BoxConstraints constraints) {
                           return GestureDetector(
                               onTapDown: (details) {
-                                if (HardwareKeyboard.instance.isPhysicalKeyPressed(PhysicalKeyboardKey.shiftLeft)) {
+                                if (HardwareKeyboard.instance
+                                    .isPhysicalKeyPressed(
+                                        PhysicalKeyboardKey.shiftLeft)) {
                                   var newBeziers = beziers;
-
 
                                   newBeziers.removeWhere((element) {
                                     return element.isOver(
@@ -183,7 +179,9 @@ class _PathingScreenState extends State<PathingScreen> {
                                 }
                               },
                               onPanUpdate: (details) {
-                                if (HardwareKeyboard.instance.isPhysicalKeyPressed(PhysicalKeyboardKey.shiftLeft)) {
+                                if (HardwareKeyboard.instance
+                                    .isPhysicalKeyPressed(
+                                        PhysicalKeyboardKey.shiftLeft)) {
                                   var newBeziers = beziers;
 
                                   newBeziers.removeWhere((element) {
@@ -224,8 +222,11 @@ class _PathingScreenState extends State<PathingScreen> {
                                 });
                               },
                               child: CustomPaint(
-                                foregroundPainter: PathDrawer(beziers, robots, commands.map((e) => e.t).toList()),
-                                child: isSkills ? Image.asset('assets/skills.png') : Image.asset('assets/match.png'),
+                                foregroundPainter: PathDrawer(beziers, robots,
+                                    commands.map((e) => e.t).toList()),
+                                child: isSkills
+                                    ? Image.asset('assets/skills.png')
+                                    : Image.asset('assets/match.png'),
                               ));
                         },
                       )),
@@ -279,7 +280,8 @@ class _PathingScreenState extends State<PathingScreen> {
                                   max: beziers.length.toDouble(),
                                   onChangeEnd: (_) {
                                     setState(() {
-                                      commands.sort((a, b) => a.t.compareTo(b.t));
+                                      commands
+                                          .sort((a, b) => a.t.compareTo(b.t));
                                     });
                                   },
                                   value: commands[index].t,
@@ -340,8 +342,12 @@ class _PathingScreenState extends State<PathingScreen> {
           padding: const EdgeInsets.all(10),
           child: Column(
             children: [
-              const Text(
-                "Velocity, Accel",
+              Text(
+                "Velocity, Accel ${getDuration(path: path.Path(
+                    startSpeed: startSpeed,
+                    endSpeed: endSpeed,
+                    segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
+                    commands: []))}",
                 textAlign: TextAlign.end,
                 style: TextStyle(fontSize: 30),
               ),
@@ -349,7 +355,8 @@ class _PathingScreenState extends State<PathingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton.filledTonal(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 10),
                     isSelected: allVisible,
                     icon: const Icon(Icons.visibility_off_outlined),
                     selectedIcon: const Icon(Icons.visibility),
@@ -366,8 +373,8 @@ class _PathingScreenState extends State<PathingScreen> {
                   const Padding(
                     padding: EdgeInsets.only(left: 20),
                     child: Text(
-                        "Default: ",
-                        textScaler: TextScaler.linear(2),
+                      "Default: ",
+                      textScaler: TextScaler.linear(2),
                     ),
                   ),
                   Expanded(
@@ -416,56 +423,75 @@ class _PathingScreenState extends State<PathingScreen> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 5),
                           child: SizedBox(
-                            height: 40,
+                            height: 45,
                             width: 600,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                MouseRegion(
-                                  onEnter: (value) {
-                                    setState(() {
-                                      beziers[index].focused = true;
-                                    });
-                                  },
-                                  onExit: (value) {
-                                    setState(() {
-                                      beziers[index].focused = false;
-                                    });
-                                  },
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  child: MouseRegion(
+                                    onEnter: (value) {
+                                      setState(() {
+                                        beziers[index].focused = true;
+                                      });
+                                    },
+                                    onExit: (value) {
+                                      setState(() {
+                                        beziers[index].focused = false;
+                                      });
+                                    },
+                                    child: IconButton.filledTonal(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10, horizontal: 10),
+                                      isSelected: beziers[index].visible,
+                                      icon: const Icon(
+                                          Icons.visibility_off_outlined),
+                                      selectedIcon:
+                                          const Icon(Icons.visibility),
+                                      onPressed: () {
+                                        setState(() {
+                                          beziers[index].visible =
+                                              !beziers[index].visible;
+                                          allVisible = beziers.any((element) {
+                                            return element.visible;
+                                          });
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 4),
                                   child: IconButton.filledTonal(
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                    isSelected: beziers[index].visible,
-                                    icon: const Icon(Icons.visibility_off_outlined),
-                                    selectedIcon: const Icon(Icons.visibility),
+                                    isSelected: beziers[index].stopEnd,
+                                    icon: const Icon(Icons.arrow_right_alt),
+                                    selectedIcon:
+                                        const Icon(Icons.keyboard_tab),
                                     onPressed: () {
                                       setState(() {
-                                        beziers[index].visible = !beziers[index].visible;
-                                        allVisible = beziers.any((element) {
-                                          return element.visible;
-                                        });
+                                        beziers[index].stopEnd =
+                                            !beziers[index].stopEnd;
                                       });
                                     },
                                   ),
                                 ),
-                                IconButton.filledTonal(
-                                  isSelected: beziers[index].stopEnd,
-                                  icon: const Icon(Icons.arrow_right_alt),
-                                  selectedIcon: const Icon(Icons.keyboard_tab),
-                                  onPressed: () {
-                                    setState(() {
-                                      beziers[index].stopEnd = !beziers[index].stopEnd;
-                                    });
-                                  },
-                                ),
-                                IconButton.filledTonal(
-                                  isSelected: beziers[index].reversed,
-                                  icon: const Icon(Icons.arrow_forward),
-                                  selectedIcon: const Icon(Icons.arrow_back),
-                                  onPressed: () {
-                                    setState(() {
-                                      beziers[index].reversed = !beziers[index].reversed;
-                                    });
-                                  },
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  child: IconButton.filledTonal(
+                                    isSelected: beziers[index].reversed,
+                                    icon: const Icon(Icons.arrow_forward),
+                                    selectedIcon: const Icon(Icons.arrow_back),
+                                    onPressed: () {
+                                      setState(() {
+                                        beziers[index].reversed =
+                                            !beziers[index].reversed;
+                                      });
+                                    },
+                                  ),
                                 ),
                                 Expanded(
                                   child: Slider(
@@ -523,8 +549,8 @@ class _PathingScreenState extends State<PathingScreen> {
 
   Map<String, dynamic> toJson() {
     return {
-      "startSpeed": startSpeed,
-      "endSpeed": endSpeed,
+      "start_speed": startSpeed,
+      "end_speed": endSpeed,
       "segments": beziers,
       "commands": commands,
     };
@@ -534,8 +560,11 @@ class _PathingScreenState extends State<PathingScreen> {
     setState(() {
       final parsedData = jsonDecode(data) as Map<String, dynamic>;
 
-      startSpeed = parsedData.containsKey("startSpeed") ? parsedData["startSpeed"] : 0.0;
-      endSpeed = parsedData.containsKey("endSpeed") ? parsedData["endSpeed"] : 0.0;
+      startSpeed = parsedData.containsKey("start_speed")
+          ? parsedData["start_speed"]
+          : 0.0;
+      endSpeed =
+          parsedData.containsKey("end_speed") ? parsedData["end_speed"] : 0.0;
 
       List<Bezier> newBeziers = [];
       List<Command> newCommands = [];

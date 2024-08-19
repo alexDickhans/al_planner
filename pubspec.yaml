@@ -41,6 +41,9 @@ dependencies:
   shared_preferences: ^2.2.2
   flutter_client_sse: ^2.0.1
   flutter_svg: ^2.0.10
+  rust_lib_al_planner:
+    path: rust_builder
+  flutter_rust_bridge: 2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +55,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

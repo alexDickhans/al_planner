@@ -1,4 +1,3 @@
-
 import 'package:al_planner/screens/pathing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _loadDirectory();
   }
@@ -160,28 +158,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 onSelected: () {
                   setState(() {
                     _selectedIndex++;
-                    _selectedIndex%=_fileOptions.length;
+                    _selectedIndex %= _fileOptions.length;
                   });
                 },
                 shortcut:
-                const SingleActivator(LogicalKeyboardKey.keyK, meta: true)),
+                    const SingleActivator(LogicalKeyboardKey.keyK, meta: true)),
             PlatformMenuItem(
                 label: "Last file",
                 onSelected: () {
                   setState(() {
                     _selectedIndex--;
-                    _selectedIndex%=_fileOptions.length;
+                    _selectedIndex %= _fileOptions.length;
                   });
                 },
                 shortcut:
-                const SingleActivator(LogicalKeyboardKey.keyI, meta: true)),
+                    const SingleActivator(LogicalKeyboardKey.keyI, meta: true)),
             PlatformMenuItem(
                 label: "Open Project",
                 onSelected: () {
                   open();
                 },
                 shortcut:
-                const SingleActivator(LogicalKeyboardKey.keyO, meta: true)),
+                    const SingleActivator(LogicalKeyboardKey.keyO, meta: true)),
           ]),
         ],
         child: _fileOptions.isEmpty
@@ -210,47 +208,6 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           itemCount: _fileOptions.length,
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: buttonColor,
-        onPressed: () {
-          setState(() {
-            buttonColor = const Color(0xFFFF9700);
-          });
-
-          if (_fileOptions.isNotEmpty) {
-            File file = _fileOptions[_selectedIndex];
-            file.writeAsStringSync(currentJson, flush: true);
-          }
-
-          var uploadScriptDirectory = split(directory.absolute.path)
-              .sublist(0, split(directory.absolute.path).length - 1);
-          uploadScriptDirectory.add("uploadAllAutons.py");
-
-          // print(joinAll(uploadScriptDirectory));
-
-          Process.run('python3', [
-            joinAll(uploadScriptDirectory),
-            _uploadIndex.toInt().toString(),
-          ], environment: {
-            "PATH":
-                "/Users/alex/.gem/bin:/opt/homebrew/opt/ruby/bin:/Users/alex/.pyenv/shims:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/alex/development/flutter/bin"
-          }).asStream().listen((event) {
-            if (event.exitCode == 0) {
-              setState(() {
-                buttonColor = Colors.green;
-              });
-              // return;
-            }
-
-            setState(() {
-              buttonColor = Colors.red;
-            });
-
-            showAlertDialog(context, event.stdout + event.stderr);
-          });
-        },
-        child: Text(_uploadIndex.toString()),
       ),
     );
   }
