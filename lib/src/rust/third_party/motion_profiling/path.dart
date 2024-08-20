@@ -6,7 +6,7 @@
 import '../../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `into`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 class Command {
   final double t;
@@ -27,6 +27,27 @@ class Command {
           runtimeType == other.runtimeType &&
           t == other.t &&
           name == other.name;
+}
+
+class Constraints {
+  final double velocity;
+  final double accel;
+
+  const Constraints({
+    required this.velocity,
+    required this.accel,
+  });
+
+  @override
+  int get hashCode => velocity.hashCode ^ accel.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Constraints &&
+          runtimeType == other.runtimeType &&
+          velocity == other.velocity &&
+          accel == other.accel;
 }
 
 class Path {
@@ -64,15 +85,21 @@ class PathSegment {
   final bool inverted;
   final bool stopEnd;
   final List<Point> path;
+  final Constraints constraints;
 
   const PathSegment({
     required this.inverted,
     required this.stopEnd,
     required this.path,
+    required this.constraints,
   });
 
   @override
-  int get hashCode => inverted.hashCode ^ stopEnd.hashCode ^ path.hashCode;
+  int get hashCode =>
+      inverted.hashCode ^
+      stopEnd.hashCode ^
+      path.hashCode ^
+      constraints.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -81,7 +108,8 @@ class PathSegment {
           runtimeType == other.runtimeType &&
           inverted == other.inverted &&
           stopEnd == other.stopEnd &&
-          path == other.path;
+          path == other.path &&
+          constraints == other.constraints;
 }
 
 class Point {

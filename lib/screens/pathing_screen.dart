@@ -345,8 +345,8 @@ class _PathingScreenState extends State<PathingScreen> {
 
   Container buildVelConstraints(BuildContext context) {
     var time = getDuration(path: path.Path(
-        startSpeed: startSpeed,
-        endSpeed: endSpeed,
+        startSpeed: startSpeed/39.37,
+        endSpeed: endSpeed/39.37,
         segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
         commands: [])).toDouble() / 1000.0;
     return Container(

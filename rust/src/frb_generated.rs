@@ -120,6 +120,11 @@ const _: fn() = || {
         let _: String = Command.name;
     }
     {
+        let Constraints = None::<motion_profiling::path::Constraints>.unwrap();
+        let _: f64 = Constraints.velocity;
+        let _: f64 = Constraints.accel;
+    }
+    {
         let Path = None::<motion_profiling::path::Path>.unwrap();
         let _: f64 = Path.start_speed;
         let _: f64 = Path.end_speed;
@@ -131,6 +136,7 @@ const _: fn() = || {
         let _: bool = PathSegment.inverted;
         let _: bool = PathSegment.stop_end;
         let _: Vec<motion_profiling::path::Point> = PathSegment.path;
+        let _: motion_profiling::path::Constraints = PathSegment.constraints;
     }
     {
         let Point = None::<motion_profiling::path::Point>.unwrap();
@@ -172,6 +178,18 @@ impl SseDecode for motion_profiling::path::Command {
         return motion_profiling::path::Command {
             t: var_t,
             name: var_name,
+        };
+    }
+}
+
+impl SseDecode for motion_profiling::path::Constraints {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_velocity = <f64>::sse_decode(deserializer);
+        let mut var_accel = <f64>::sse_decode(deserializer);
+        return motion_profiling::path::Constraints {
+            velocity: var_velocity,
+            accel: var_accel,
         };
     }
 }
@@ -255,10 +273,12 @@ impl SseDecode for motion_profiling::path::PathSegment {
         let mut var_inverted = <bool>::sse_decode(deserializer);
         let mut var_stopEnd = <bool>::sse_decode(deserializer);
         let mut var_path = <Vec<motion_profiling::path::Point>>::sse_decode(deserializer);
+        let mut var_constraints = <motion_profiling::path::Constraints>::sse_decode(deserializer);
         return motion_profiling::path::PathSegment {
             inverted: var_inverted,
             stop_end: var_stopEnd,
             path: var_path,
+            constraints: var_constraints,
         };
     }
 }
@@ -342,6 +362,27 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<motion_profiling::path::Comman
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<motion_profiling::path::Constraints> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.velocity.into_into_dart().into_dart(),
+            self.0.accel.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<motion_profiling::path::Constraints>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<motion_profiling::path::Constraints>>
+    for motion_profiling::path::Constraints
+{
+    fn into_into_dart(self) -> FrbWrapper<motion_profiling::path::Constraints> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<motion_profiling::path::Path> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -371,6 +412,7 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<motion_profiling::path::PathSe
             self.0.inverted.into_into_dart().into_dart(),
             self.0.stop_end.into_into_dart().into_dart(),
             self.0.path.into_into_dart().into_dart(),
+            self.0.constraints.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -437,6 +479,14 @@ impl SseEncode for motion_profiling::path::Command {
     }
 }
 
+impl SseEncode for motion_profiling::path::Constraints {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <f64>::sse_encode(self.velocity, serializer);
+        <f64>::sse_encode(self.accel, serializer);
+    }
+}
+
 impl SseEncode for f64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -500,6 +550,7 @@ impl SseEncode for motion_profiling::path::PathSegment {
         <bool>::sse_encode(self.inverted, serializer);
         <bool>::sse_encode(self.stop_end, serializer);
         <Vec<motion_profiling::path::Point>>::sse_encode(self.path, serializer);
+        <motion_profiling::path::Constraints>::sse_encode(self.constraints, serializer);
     }
 }
 

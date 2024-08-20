@@ -9,8 +9,8 @@ import 'package:flutter/material.dart';
 import 'point.dart';
 
 const double pointSize = 12;
-const double maxSpeed = 76;
-const double maxAccel = 250;
+const double maxSpeed = 65;
+const double maxAccel = 180;
 
 class Bezier {
   Point p1 = Point(0, 0);
@@ -194,6 +194,6 @@ class Bezier {
       };
 
   path.PathSegment toPathSegment() {
-    return path.PathSegment(inverted: reversed, stopEnd: stopEnd, path: [p1.toPoint(), p2.toPoint(), p3.toPoint(), p4.toPoint()]);
+    return path.PathSegment(inverted: reversed, stopEnd: stopEnd, path: [p1.toPoint(), p2.toPoint(), p3.toPoint(), p4.toPoint()], constraints: path.Constraints(velocity: pathMaxSpeed / 39.37, accel: pathMaxAccel / 39.37));
   }
 }
