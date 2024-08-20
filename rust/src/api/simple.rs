@@ -1,3 +1,4 @@
+use std::time::Duration;
 use flutter_rust_bridge::frb;
 use motion_profiling::{
     combined_mp::CombinedMP,
@@ -6,7 +7,11 @@ use motion_profiling::{
 };
 
 fn actual_work(path: Path) -> u128 {
-    CombinedMP::new_2d(path).get_duration().as_millis()
+    if let Some(mp) = CombinedMP::try_new_2d(path) {
+        mp.get_duration().as_millis()
+    } else {
+        Duration::new(1000000, 0).as_millis()
+    }
 }
 
 #[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo

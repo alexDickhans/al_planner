@@ -206,6 +206,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "either"
+version = "1.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
+
+[[package]]
 name = "env_logger"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -374,6 +380,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
+name = "interp"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "530f1a6dab1502fc7dd5e193d08ed17c775c32c40894b75532533c6b1611f08b"
+dependencies = [
+ "itertools",
+ "num-traits",
+]
+
+[[package]]
+name = "itertools"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "js-sys"
 version = "0.3.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -435,7 +460,9 @@ dependencies = [
 name = "motion_profiling"
 version = "0.1.1"
 dependencies = [
+ "interp",
  "nalgebra",
+ "num-traits",
  "simba",
  "uom",
 ]
@@ -501,6 +528,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
+ "libm",
 ]
 
 [[package]]

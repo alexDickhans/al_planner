@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:al_planner/utils/double.dart';
 import 'package:format/format.dart';
@@ -61,4 +62,30 @@ class Point {
   path.Point toPoint() {
     return path.Point(x: x, y: y);
   }
+
+  Point minus(Point rhs) {
+    return Point(x - rhs.x, y - rhs.y);
+  }
+
+  Point plus(Point rhs) {
+    return Point(x + rhs.x, y + rhs.y);
+  }
+
+  Point times(double mult) {
+    return Point(x * mult, y * mult);
+  }
+
+  Point midpoint(Point rhs) {
+    return Point((rhs.x + x) / 2.0, (rhs.y + y) / 2.0);
+  }
+
+  double magnitude() {
+    return sqrt(pow(x, 2) + pow(y, 2));
+  }
+
+  Point norm() {
+    var mag = magnitude();
+    return Point(x/mag, y/mag);
+  }
+
 }

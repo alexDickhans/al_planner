@@ -125,8 +125,8 @@ class _PathingScreenState extends State<PathingScreen> {
                     value: startSpeed,
                     label: startSpeed.round().toString(),
                     divisions: 12,
-                    min: -72.0,
-                    max: 72.0,
+                    min: -maxSpeed,
+                    max: maxSpeed,
                     onChanged: (double value) {
                       setState(() {
                         startSpeed = value;
@@ -139,8 +139,8 @@ class _PathingScreenState extends State<PathingScreen> {
                     value: endSpeed,
                     label: endSpeed.round().toString(),
                     divisions: 12,
-                    min: -72.0,
-                    max: 72.0,
+                    min: -maxSpeed,
+                    max: maxSpeed,
                     onChanged: (double value) {
                       setState(() {
                         endSpeed = value;
@@ -193,16 +193,26 @@ class _PathingScreenState extends State<PathingScreen> {
                                     beziers = newBeziers;
                                   });
                                 } else {
-                                  var newBeziers = beziers;
-
-                                  for (var bezier in newBeziers) {
-                                    if (bezier.move(details, context.size!)) {
-                                      break;
-                                    }
-                                  }
-
                                   setState(() {
-                                    beziers = newBeziers;
+                                    for (var i = 0; i < beziers.length; i++) {
+                                      switch (beziers[i].move(details, context.size!)) {
+                                        case 2:
+                                          if (i > 0) {
+                                            var mag = beziers[i-1].p4.minus(beziers[i-1].p3).magnitude();
+                                            var unit = beziers[i].p1.minus(beziers[i].p2).norm().times(beziers[i-1].reversed ^ beziers[i].reversed ? -1.0 : 1.0);
+                                            beziers[i-1].p3 = beziers[i-1].p4.plus(unit.times(mag));
+                                          }
+                                          return;
+                                        case 3:
+                                          if (i < beziers.length - 1) {
+                                            var mag = beziers[i+1].p1.minus(beziers[i+1].p2).magnitude();
+                                            var unit = beziers[i].p4.minus(beziers[i].p3).norm().times(beziers[i+1].reversed ^ beziers[i].reversed ? -1.0 : 1.0);
+                                            beziers[i+1].p2 = beziers[i+1].p1.plus(unit.times(mag));
+                                          }
+                                          return;
+                                        default:
+                                      }
+                                    }
                                   });
                                 }
                               },
@@ -212,8 +222,11 @@ class _PathingScreenState extends State<PathingScreen> {
                                       beziers.isEmpty
                                           ? Point(1.6, 1.6)
                                           : beziers[beziers.length - 1].p4,
-                                      Point(1.6, 2.0),
-                                      Point(2.0, 2.0),
+                                      beziers[beziers.length -1].p3.plus(beziers[beziers.length -1].p3.minus(beziers[beziers.length - 1].p4).times(-2.0)),
+                                      beziers.isEmpty
+                                          ? Point(0.4, 0.4)
+                                          : Point.fromOffset(
+                                          details.localPosition, context.size!).midpoint(beziers[beziers.length -1].p3.plus(beziers[beziers.length -1].p3.minus(beziers[beziers.length - 1].p4).times(-2.0))),
                                       Point.fromOffset(
                                           details.localPosition, context.size!),
                                       defaultMaxSpeed,
@@ -331,6 +344,11 @@ class _PathingScreenState extends State<PathingScreen> {
   }
 
   Container buildVelConstraints(BuildContext context) {
+    var time = getDuration(path: path.Path(
+        startSpeed: startSpeed,
+        endSpeed: endSpeed,
+        segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
+        commands: [])).toDouble() / 1000.0;
     return Container(
       decoration: const BoxDecoration(
           color: Color(0xfff5eddf),
@@ -343,13 +361,9 @@ class _PathingScreenState extends State<PathingScreen> {
           child: Column(
             children: [
               Text(
-                "Velocity, Accel ${getDuration(path: path.Path(
-                    startSpeed: startSpeed,
-                    endSpeed: endSpeed,
-                    segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
-                    commands: []))}",
-                textAlign: TextAlign.end,
-                style: TextStyle(fontSize: 30),
+                "Velocity, Accel. Time: ${time}",
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 30),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

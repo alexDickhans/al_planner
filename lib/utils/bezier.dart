@@ -81,9 +81,9 @@ class Bezier {
     return p8.lerp(p9, t);
   }
 
-  bool move(DragUpdateDetails details, Size size) {
+  int move(DragUpdateDetails details, Size size) {
     if (!visible) {
-      return false;
+      return -1;
     }
 
     if (sqrt(pow(
@@ -99,7 +99,7 @@ class Bezier {
         pointSize) {
       p1.move(details.delta.dx, details.delta.dy, size.width, size.height);
       p2.move(details.delta.dx, details.delta.dy, size.width, size.height);
-      return true;
+      return 1;
     }
     if (sqrt(pow(
                 p2.getXScreen(size.width) +
@@ -113,7 +113,7 @@ class Bezier {
                 2)) <
         pointSize) {
       p2.move(details.delta.dx, details.delta.dy, size.width, size.height);
-      return true;
+      return 2;
     }
     if (sqrt(pow(
                 p3.getXScreen(size.width) +
@@ -127,7 +127,7 @@ class Bezier {
                 2)) <
         pointSize) {
       p3.move(details.delta.dx, details.delta.dy, size.width, size.height);
-      return true;
+      return 3;
     }
     if (sqrt(pow(
                 p4.getXScreen(size.width) +
@@ -142,10 +142,10 @@ class Bezier {
         pointSize) {
       p4.move(details.delta.dx, details.delta.dy, size.width, size.height);
       p3.move(details.delta.dx, details.delta.dy, size.width, size.height);
-      return true;
+      return 4;
     }
 
-    return false;
+    return 0;
   }
 
   bool isOver(details, Size size) {
