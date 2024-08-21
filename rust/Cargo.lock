@@ -459,7 +459,7 @@ dependencies = [
 [[package]]
 name = "motion_profiling"
 version = "0.1.1"
-source = "git+https://github.com/alexDickhans/motion_profiling.git#d2eb5d9f72fc0fa8f360f2454cacb4be60a77240"
+source = "git+https://github.com/alexDickhans/motion_profiling.git#6967f0dfc1e1275e20deb624c21aa9b6adb90c4a"
 dependencies = [
  "interp",
  "nalgebra",
