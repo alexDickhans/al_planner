@@ -7,8 +7,8 @@ use motion_profiling::{
 };
 
 fn actual_work(path: Path) -> u128 {
-    if let Some(mp) = CombinedMP::try_new_2d(path) {
-        mp.get_duration().as_millis()
+    if let Some(mp) = CombinedMP::try_new_2d(path, 12.0/39.37) {
+        mp.duration().as_millis()
     } else {
         Duration::new(1000000, 0).as_millis()
     }

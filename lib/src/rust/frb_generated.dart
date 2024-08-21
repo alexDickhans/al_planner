@@ -176,6 +176,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Constraints dco_decode_constraints(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return Constraints(
+      velocity: dco_decode_f_64(arr[0]),
+      accel: dco_decode_f_64(arr[1]),
+    );
+  }
+
+  @protected
   double dco_decode_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
@@ -223,12 +235,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PathSegment dco_decode_path_segment(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return PathSegment(
       inverted: dco_decode_bool(arr[0]),
       stopEnd: dco_decode_bool(arr[1]),
       path: dco_decode_list_point(arr[2]),
+      constraints: dco_decode_constraints(arr[3]),
     );
   }
 
@@ -288,6 +301,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_t = sse_decode_f_64(deserializer);
     var var_name = sse_decode_String(deserializer);
     return Command(t: var_t, name: var_name);
+  }
+
+  @protected
+  Constraints sse_decode_constraints(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_velocity = sse_decode_f_64(deserializer);
+    var var_accel = sse_decode_f_64(deserializer);
+    return Constraints(velocity: var_velocity, accel: var_accel);
   }
 
   @protected
@@ -359,8 +380,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_inverted = sse_decode_bool(deserializer);
     var var_stopEnd = sse_decode_bool(deserializer);
     var var_path = sse_decode_list_point(deserializer);
+    var var_constraints = sse_decode_constraints(deserializer);
     return PathSegment(
-        inverted: var_inverted, stopEnd: var_stopEnd, path: var_path);
+        inverted: var_inverted,
+        stopEnd: var_stopEnd,
+        path: var_path,
+        constraints: var_constraints);
   }
 
   @protected
@@ -420,6 +445,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_constraints(Constraints self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.velocity, serializer);
+    sse_encode_f_64(self.accel, serializer);
+  }
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putFloat64(self);
@@ -476,6 +508,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self.inverted, serializer);
     sse_encode_bool(self.stopEnd, serializer);
     sse_encode_list_point(self.path, serializer);
+    sse_encode_constraints(self.constraints, serializer);
   }
 
   @protected
