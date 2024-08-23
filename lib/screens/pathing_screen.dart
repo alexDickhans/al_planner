@@ -101,243 +101,246 @@ class _PathingScreenState extends State<PathingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 15),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: IconButton.filledTonal(
-                      isSelected: isSkills,
-                      icon: const Icon(Icons.groups),
-                      selectedIcon: const Icon(Icons.person),
-                      onPressed: () {
+    return Container(
+      color: const Color(0xFFFEFEFE),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 15),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: IconButton.filledTonal(
+                        isSelected: isSkills,
+                        icon: const Icon(Icons.groups),
+                        selectedIcon: const Icon(Icons.person),
+                        onPressed: () {
+                          setState(() {
+                            isSkills = !isSkills;
+                          });
+                        }),
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: startSpeed,
+                      label: startSpeed.round().toString(),
+                      divisions: 12,
+                      min: -maxSpeed,
+                      max: maxSpeed,
+                      onChanged: (double value) {
                         setState(() {
-                          isSkills = !isSkills;
+                          startSpeed = value;
                         });
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: endSpeed,
+                      label: endSpeed.round().toString(),
+                      divisions: 12,
+                      min: -maxSpeed,
+                      max: maxSpeed,
+                      onChanged: (double value) {
+                        setState(() {
+                          endSpeed = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: SizedBox(child: LayoutBuilder(
+                          builder:
+                              (BuildContext context, BoxConstraints constraints) {
+                            return GestureDetector(
+                                onTapDown: (details) {
+                                  if (HardwareKeyboard.instance
+                                      .isPhysicalKeyPressed(
+                                          PhysicalKeyboardKey.shiftLeft)) {
+                                    var newBeziers = beziers;
+
+                                    newBeziers.removeWhere((element) {
+                                      return element.isOver(
+                                          details, context.size!);
+                                    });
+
+                                    setState(() {
+                                      beziers = newBeziers;
+                                    });
+                                  }
+                                },
+                                onPanUpdate: (details) {
+                                  if (HardwareKeyboard.instance
+                                      .isPhysicalKeyPressed(
+                                          PhysicalKeyboardKey.shiftLeft)) {
+                                    var newBeziers = beziers;
+
+                                    newBeziers.removeWhere((element) {
+                                      return element.isOver(
+                                          details, context.size!);
+                                    });
+
+                                    setState(() {
+                                      beziers = newBeziers;
+                                    });
+                                  } else {
+                                    setState(() {
+                                      for (var i = 0; i < beziers.length; i++) {
+                                        switch (beziers[i].move(details, context.size!)) {
+                                          case 2:
+                                            if (i > 0) {
+                                              var mag = beziers[i-1].p4.minus(beziers[i-1].p3).magnitude();
+                                              var unit = beziers[i].p1.minus(beziers[i].p2).norm().times(beziers[i-1].reversed ^ beziers[i].reversed ? -1.0 : 1.0);
+                                              beziers[i-1].p3 = beziers[i-1].p4.plus(unit.times(mag));
+                                            }
+                                            return;
+                                          case 3:
+                                            if (i < beziers.length - 1) {
+                                              var mag = beziers[i+1].p1.minus(beziers[i+1].p2).magnitude();
+                                              var unit = beziers[i].p4.minus(beziers[i].p3).norm().times(beziers[i+1].reversed ^ beziers[i].reversed ? -1.0 : 1.0);
+                                              beziers[i+1].p2 = beziers[i+1].p1.plus(unit.times(mag));
+                                            }
+                                            return;
+                                          default:
+                                        }
+                                      }
+                                    });
+                                  }
+                                },
+                                onDoubleTapDown: (details) {
+                                  setState(() {
+                                    beziers.add(Bezier(
+                                        beziers.isEmpty
+                                            ? Point(1.6, 1.6)
+                                            : beziers[beziers.length - 1].p4,
+                                        beziers[beziers.length -1].p3.plus(beziers[beziers.length -1].p3.minus(beziers[beziers.length - 1].p4).times(-2.0)),
+                                        beziers.isEmpty
+                                            ? Point(0.4, 0.4)
+                                            : Point.fromOffset(
+                                            details.localPosition, context.size!).midpoint(beziers[beziers.length -1].p3.plus(beziers[beziers.length -1].p3.minus(beziers[beziers.length - 1].p4).times(-2.0))),
+                                        Point.fromOffset(
+                                            details.localPosition, context.size!),
+                                        defaultMaxSpeed,
+                                        defaultMaxAccel,
+                                        false));
+                                  });
+                                },
+                                child: CustomPaint(
+                                  foregroundPainter: PathDrawer(beziers, robots,
+                                      commands.map((e) => e.t).toList()),
+                                  child: isSkills
+                                      ? Image.asset('assets/skills.png')
+                                      : Image.asset('assets/match.png'),
+                                ));
+                          },
+                        )),
+                      ),
+                      Expanded(
+                        child: Padding(
+                            padding: const EdgeInsets.only(right: 15),
+                            child: buildVelConstraints(context)),
+                      ),
+                    ],
+                  )),
+              Column(children: [
+                IconButton.filledTonal(
+                  onPressed: () {
+                    setState(() {
+                      commands.add(Command(0.0, "change"));
+                    });
+                  },
+                  icon: const Icon(Icons.add),
+                ),
+                SizedBox(
+                  width: 1600,
+                  height: 300,
+                  child: ListView.builder(
+                      itemCount: commands.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RawMaterialButton(
+                                constraints: const BoxConstraints(
+                                    minWidth: 36.0, minHeight: 36.0),
+                                shape: RoundedRectangleBorder(
+                                    side: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(20)),
+                                fillColor: const Color(0xFFFF9700),
+                                onPressed: () {
+                                  setState(() {
+                                    commands.removeAt(index);
+                                  });
+                                },
+                                child: const Icon(Icons.remove)),
+                            Expanded(
+                                flex: 2,
+                                child: Slider(
+                                    divisions: 1000,
+                                    label: commands[index]
+                                        .t
+                                        .toPrecision(3)
+                                        .toString(),
+                                    max: beziers.length.toDouble(),
+                                    onChangeEnd: (_) {
+                                      setState(() {
+                                        commands
+                                            .sort((a, b) => a.t.compareTo(b.t));
+                                      });
+                                    },
+                                    value: commands[index].t,
+                                    onChanged: (double value) {
+                                      setState(() {
+                                        commands[index].t = value;
+                                      });
+                                    })),
+                            Expanded(
+                                child: TextField(
+                              controller: commands[index].textEditingController,
+                              onChanged: (value) {
+                                setState(() {
+                                  commands[index].name = value;
+                                });
+                              },
+                            )),
+                          ],
+                        );
                       }),
                 ),
-                Expanded(
-                  child: Slider(
-                    value: startSpeed,
-                    label: startSpeed.round().toString(),
-                    divisions: 12,
-                    min: -maxSpeed,
-                    max: maxSpeed,
-                    onChanged: (double value) {
-                      setState(() {
-                        startSpeed = value;
-                      });
-                    },
-                  ),
+              ]),
+              Container(
+                padding: const EdgeInsets.only(bottom: 100),
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    editingController.text = getData();
+                    return TextField(
+                      keyboardType: TextInputType.multiline,
+                      controller: editingController,
+                      onSubmitted: (value) {
+                        setData(value);
+                      },
+                      // onTapOutside: (value) {
+                      //   setData(value);
+                      // },
+                      maxLines: 1200,
+                      minLines: 5,
+                    );
+                  },
                 ),
-                Expanded(
-                  child: Slider(
-                    value: endSpeed,
-                    label: endSpeed.round().toString(),
-                    divisions: 12,
-                    min: -maxSpeed,
-                    max: maxSpeed,
-                    onChanged: (double value) {
-                      setState(() {
-                        endSpeed = value;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-            AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: SizedBox(child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          return GestureDetector(
-                              onTapDown: (details) {
-                                if (HardwareKeyboard.instance
-                                    .isPhysicalKeyPressed(
-                                        PhysicalKeyboardKey.shiftLeft)) {
-                                  var newBeziers = beziers;
-
-                                  newBeziers.removeWhere((element) {
-                                    return element.isOver(
-                                        details, context.size!);
-                                  });
-
-                                  setState(() {
-                                    beziers = newBeziers;
-                                  });
-                                }
-                              },
-                              onPanUpdate: (details) {
-                                if (HardwareKeyboard.instance
-                                    .isPhysicalKeyPressed(
-                                        PhysicalKeyboardKey.shiftLeft)) {
-                                  var newBeziers = beziers;
-
-                                  newBeziers.removeWhere((element) {
-                                    return element.isOver(
-                                        details, context.size!);
-                                  });
-
-                                  setState(() {
-                                    beziers = newBeziers;
-                                  });
-                                } else {
-                                  setState(() {
-                                    for (var i = 0; i < beziers.length; i++) {
-                                      switch (beziers[i].move(details, context.size!)) {
-                                        case 2:
-                                          if (i > 0) {
-                                            var mag = beziers[i-1].p4.minus(beziers[i-1].p3).magnitude();
-                                            var unit = beziers[i].p1.minus(beziers[i].p2).norm().times(beziers[i-1].reversed ^ beziers[i].reversed ? -1.0 : 1.0);
-                                            beziers[i-1].p3 = beziers[i-1].p4.plus(unit.times(mag));
-                                          }
-                                          return;
-                                        case 3:
-                                          if (i < beziers.length - 1) {
-                                            var mag = beziers[i+1].p1.minus(beziers[i+1].p2).magnitude();
-                                            var unit = beziers[i].p4.minus(beziers[i].p3).norm().times(beziers[i+1].reversed ^ beziers[i].reversed ? -1.0 : 1.0);
-                                            beziers[i+1].p2 = beziers[i+1].p1.plus(unit.times(mag));
-                                          }
-                                          return;
-                                        default:
-                                      }
-                                    }
-                                  });
-                                }
-                              },
-                              onDoubleTapDown: (details) {
-                                setState(() {
-                                  beziers.add(Bezier(
-                                      beziers.isEmpty
-                                          ? Point(1.6, 1.6)
-                                          : beziers[beziers.length - 1].p4,
-                                      beziers[beziers.length -1].p3.plus(beziers[beziers.length -1].p3.minus(beziers[beziers.length - 1].p4).times(-2.0)),
-                                      beziers.isEmpty
-                                          ? Point(0.4, 0.4)
-                                          : Point.fromOffset(
-                                          details.localPosition, context.size!).midpoint(beziers[beziers.length -1].p3.plus(beziers[beziers.length -1].p3.minus(beziers[beziers.length - 1].p4).times(-2.0))),
-                                      Point.fromOffset(
-                                          details.localPosition, context.size!),
-                                      defaultMaxSpeed,
-                                      defaultMaxAccel,
-                                      false));
-                                });
-                              },
-                              child: CustomPaint(
-                                foregroundPainter: PathDrawer(beziers, robots,
-                                    commands.map((e) => e.t).toList()),
-                                child: isSkills
-                                    ? Image.asset('assets/skills.png')
-                                    : Image.asset('assets/match.png'),
-                              ));
-                        },
-                      )),
-                    ),
-                    Expanded(
-                      child: Padding(
-                          padding: const EdgeInsets.only(right: 15),
-                          child: buildVelConstraints(context)),
-                    ),
-                  ],
-                )),
-            Column(children: [
-              IconButton.filledTonal(
-                onPressed: () {
-                  setState(() {
-                    commands.add(Command(0.0, "change"));
-                  });
-                },
-                icon: const Icon(Icons.add),
-              ),
-              SizedBox(
-                width: 1600,
-                height: 300,
-                child: ListView.builder(
-                    itemCount: commands.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          RawMaterialButton(
-                              constraints: const BoxConstraints(
-                                  minWidth: 36.0, minHeight: 36.0),
-                              shape: RoundedRectangleBorder(
-                                  side: BorderSide.none,
-                                  borderRadius: BorderRadius.circular(20)),
-                              fillColor: const Color(0xFFFF9700),
-                              onPressed: () {
-                                setState(() {
-                                  commands.removeAt(index);
-                                });
-                              },
-                              child: const Icon(Icons.remove)),
-                          Expanded(
-                              flex: 2,
-                              child: Slider(
-                                  divisions: 1000,
-                                  label: commands[index]
-                                      .t
-                                      .toPrecision(3)
-                                      .toString(),
-                                  max: beziers.length.toDouble(),
-                                  onChangeEnd: (_) {
-                                    setState(() {
-                                      commands
-                                          .sort((a, b) => a.t.compareTo(b.t));
-                                    });
-                                  },
-                                  value: commands[index].t,
-                                  onChanged: (double value) {
-                                    setState(() {
-                                      commands[index].t = value;
-                                    });
-                                  })),
-                          Expanded(
-                              child: TextField(
-                            controller: commands[index].textEditingController,
-                            onChanged: (value) {
-                              setState(() {
-                                commands[index].name = value;
-                              });
-                            },
-                          )),
-                        ],
-                      );
-                    }),
-              ),
-            ]),
-            Container(
-              padding: const EdgeInsets.only(bottom: 100),
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  editingController.text = getData();
-                  return TextField(
-                    keyboardType: TextInputType.multiline,
-                    controller: editingController,
-                    onSubmitted: (value) {
-                      setData(value);
-                    },
-                    // onTapOutside: (value) {
-                    //   setData(value);
-                    // },
-                    maxLines: 1200,
-                    minLines: 5,
-                  );
-                },
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -396,7 +399,7 @@ class _PathingScreenState extends State<PathingScreen> {
                       divisions: maxSpeed.toInt(),
                       label: defaultMaxSpeed.round().toString(),
                       value: defaultMaxSpeed,
-                      min: 0,
+                      min: 1.0,
                       max: maxSpeed,
                       onChanged: (double value) {
                         setState(() {
@@ -413,7 +416,7 @@ class _PathingScreenState extends State<PathingScreen> {
                       divisions: maxAccel.toInt(),
                       label: defaultMaxAccel.round().toString(),
                       value: defaultMaxAccel,
-                      min: 0,
+                      min: 1.0,
                       max: maxAccel,
                       onChanged: (double value) {
                         setState(() {
@@ -515,7 +518,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                         .round()
                                         .toString(),
                                     value: beziers[index].pathMaxSpeed,
-                                    min: 0,
+                                    min: 1.0,
                                     max: maxSpeed,
                                     onChanged: (double value) {
                                       setState(() {
@@ -532,7 +535,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                         .round()
                                         .toString(),
                                     value: beziers[index].pathMaxAccel,
-                                    min: 0,
+                                    min: 1.0,
                                     max: maxAccel,
                                     onChanged: (double value) {
                                       setState(() {
