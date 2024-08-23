@@ -458,7 +458,7 @@ dependencies = [
 [[package]]
 name = "motion_profiling"
 version = "0.1.5"
-source = "git+https://github.com/alexDickhans/motion_profiling.git#8368e3843d623e5de3b3bfead93768aa7fb2f1ff"
+source = "git+https://github.com/alexDickhans/motion_profiling.git#430bdf836664af75459ea00594742974b5ef5fc8"
 dependencies = [
  "interp",
  "nalgebra",
@@ -638,6 +638,7 @@ version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
  "motion_profiling",
+ "nalgebra",
 ]
 
 [[package]]

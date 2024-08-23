@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:al_planner/screens/path_drawer.dart';
 import 'package:al_planner/src/rust/third_party/motion_profiling/path.dart' as path;
@@ -60,6 +62,11 @@ class _PathingScreenState extends State<PathingScreen> {
   double startSpeed = 0.0;
   double endSpeed = 0.0;
   bool isSkills = false;
+  double _time = 0.0;
+
+  // Define a Timer object
+  Timer? _timer;
+  Duration _duration = const Duration();
 
   void updateFile() {
     widget.currentFile.readAsString().then((value) => {setData(value)});
@@ -97,6 +104,40 @@ class _PathingScreenState extends State<PathingScreen> {
   void didUpdateWidget(PathingScreen old) {
     super.didUpdateWidget(old);
     updateFile();
+  }
+
+  void startTimer() {
+    const interval = Duration(milliseconds: 16);
+    if (_duration.inMilliseconds >= _time * 1000.0) {
+      _duration = const Duration();
+    }
+    _timer = Timer.periodic(interval, (timer) {
+      if (_duration.inMilliseconds >= _time * 1000.0) {
+        // Countdown is finished
+        _timer?.cancel();
+        // Perform any desired action when the countdown is completed
+      } else {
+        // Update the countdown value and decrement by 1 second
+        setState(() {
+          _duration = _duration + interval;
+          robots = [getPoseTime()];
+        });
+      }
+    });
+  }
+
+  RobotPosition getPoseTime() {
+    var pose = getPose(path: path.Path(
+        startSpeed: startSpeed/39.37,
+        endSpeed: endSpeed/39.37,
+        segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
+        commands: []), t: _duration.inMilliseconds /1000.0);
+
+    return RobotPosition(pose.x, pose.y, pose.theta);
+  }
+
+  void stopTimer() {
+    _timer?.cancel();
   }
 
   @override
@@ -149,6 +190,38 @@ class _PathingScreenState extends State<PathingScreen> {
                         });
                       },
                     ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: IconButton.filledTonal(
+                        isSelected: _timer?.isActive,
+                        icon: const Icon(Icons.play_arrow),
+                        selectedIcon: const Icon(Icons.pause),
+                        onPressed: () {
+                          setState(() {
+                            if (_timer == null || !_timer!.isActive) {
+                              startTimer();
+                            } else {
+                              stopTimer();
+                            }
+                          });
+                        }),
+                  ),
+                  Expanded(
+                    child: Slider(
+                      min: 0.0,
+                        max: _time,
+                        value: clampDouble(_duration.inMilliseconds / 1000.0, 0.0, _time),
+                        onChanged: (value) {
+                          setState(() {
+                            _duration = Duration(milliseconds: (value * 1000.0).toInt());
+                            robots = [getPoseTime()];
+                          });
+                        }),
                   ),
                 ],
               ),
@@ -347,7 +420,7 @@ class _PathingScreenState extends State<PathingScreen> {
   }
 
   Container buildVelConstraints(BuildContext context) {
-    var time = getDuration(path: path.Path(
+    _time = getDuration(path: path.Path(
         startSpeed: startSpeed/39.37,
         endSpeed: endSpeed/39.37,
         segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
@@ -364,7 +437,7 @@ class _PathingScreenState extends State<PathingScreen> {
           child: Column(
             children: [
               Text(
-                "Velocity, Accel. Time: ${time}",
+                "Velocity, Accel. Time: $_time",
                 textAlign: TextAlign.right,
                 style: const TextStyle(fontSize: 30),
               ),
