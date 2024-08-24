@@ -9,6 +9,7 @@ use motion_profiling::{
 };
 use motion_profiling::mp_2d::MotionProfile2d;
 use nalgebra::{Vector3};
+use uom::si::angular_velocity::{degree_per_second, revolution_per_second};
 use uom::si::velocity::*;
 
 lazy_static!(
@@ -44,6 +45,14 @@ fn actual_work_get_v(t: f64) -> f64 {
     }
 }
 
+fn actual_work_get_av(t: f64) -> f64 {
+    if let Some(command) = MP.write().unwrap().get(Duration::from_millis((t * 1000.0) as u64)) {
+        command.desired_angular.get::<degree_per_second>()
+    } else {
+        0.0
+    }
+}
+
 #[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
 pub fn get_duration(path: Path) -> u128 {
     actual_work(path)
@@ -74,6 +83,11 @@ pub fn get_pose(t: f64) -> Pose {
 #[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
 pub fn get_velocity(t: f64) -> f64 {
     actual_work_get_v(t)
+}
+
+#[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
+pub fn get_angular_velocity(t: f64) -> f64 {
+    actual_work_get_av(t)
 }
 
 #[flutter_rust_bridge::frb(init)]

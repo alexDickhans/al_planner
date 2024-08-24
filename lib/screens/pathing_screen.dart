@@ -66,6 +66,7 @@ class _PathingScreenState extends State<PathingScreen> {
   bool isSkills = false;
   double _time = 0.0;
   LineChartData _data = LineChartData(datasets: [Dataset(label: "Velocity", dataPoints: <DataPoint>[])]);
+  LineChartData _data_angular = LineChartData(datasets: [Dataset(label: "Velocity", dataPoints: <DataPoint>[])]);
 
   // Define a Timer object
   bool _play = false;
@@ -356,6 +357,13 @@ class _PathingScreenState extends State<PathingScreen> {
                 // chart has data
                 data: _data,
                 controller: LineChartController()),
+              LineChart(
+                // chart is styled
+                  style: LineChartStyle.fromTheme(context),
+                  seriesHeight: 300,
+                  // chart has data
+                  data: _data_angular,
+                  controller: LineChartController()),
               Column(children: [
                 IconButton.filledTonal(
                   onPressed: () {
@@ -456,15 +464,18 @@ class _PathingScreenState extends State<PathingScreen> {
         segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
         commands: [])).toDouble() / 1000.0;
     
-    var lineChartData = <DataPoint>[];
+    var velocity = <DataPoint>[];
+    var angularVelocity = <DataPoint>[];
 
     for (int i = 0; i < 20 * beziers.length; i++) {
       var time = i * _time / (20 * beziers.length);
-      
-      lineChartData.add(DataPoint(x: time, y: getVelocity(t: time)));
+
+      velocity.add(DataPoint(x: time, y: getVelocity(t: time)));
+      angularVelocity.add(DataPoint(x: time, y: getAngularVelocity(t: time)));
     }
 
-    _data = LineChartData(datasets: [Dataset(label: "Velocity", dataPoints: lineChartData)]);
+    _data = LineChartData(datasets: [Dataset(label: "Velocity", dataPoints: velocity), ]);
+    _data_angular = LineChartData(datasets: [Dataset(label: " Angular Velocity", dataPoints: angularVelocity)]);
   }
 
   Container buildVelConstraints(BuildContext context) {
