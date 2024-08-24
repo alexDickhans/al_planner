@@ -637,6 +637,7 @@ name = "rust_lib_al_planner"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
+ "lazy_static",
  "motion_profiling",
  "nalgebra",
 ]

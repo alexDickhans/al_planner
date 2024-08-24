@@ -82,7 +82,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 abstract class RustLibApi extends BaseApi {
   BigInt crateApiSimpleGetDuration({required Path path});
 
-  Pose crateApiSimpleGetPose({required Path path, required double t});
+  Pose crateApiSimpleGetPose({required double t});
 
   Future<void> crateApiSimpleInitApp();
 }
@@ -119,11 +119,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Pose crateApiSimpleGetPose({required Path path, required double t}) {
+  Pose crateApiSimpleGetPose({required double t}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_path(path, serializer);
         sse_encode_f_64(t, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
       },
@@ -132,14 +131,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: null,
       ),
       constMeta: kCrateApiSimpleGetPoseConstMeta,
-      argValues: [path, t],
+      argValues: [t],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiSimpleGetPoseConstMeta => const TaskConstMeta(
         debugName: "get_pose",
-        argNames: ["path", "t"],
+        argNames: ["t"],
       );
 
   @override

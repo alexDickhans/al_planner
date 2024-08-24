@@ -7,6 +7,7 @@ import 'package:al_planner/src/rust/third_party/motion_profiling/path.dart' as p
 import 'package:al_planner/utils/double.dart';
 import 'package:al_planner/utils/robot.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
 import 'package:flutter_client_sse/flutter_client_sse.dart';
@@ -65,8 +66,9 @@ class _PathingScreenState extends State<PathingScreen> {
   double _time = 0.0;
 
   // Define a Timer object
-  Timer? _timer;
+  bool _play = false;
   Duration _duration = const Duration();
+  Duration lastTime = const Duration();
 
   void updateFile() {
     widget.currentFile.readAsString().then((value) => {setData(value)});
@@ -98,6 +100,9 @@ class _PathingScreenState extends State<PathingScreen> {
         }
       }, onError: (error) {}, onDone: () {});
     }
+
+
+    _scheduleTick();
   }
 
   @override
@@ -107,37 +112,45 @@ class _PathingScreenState extends State<PathingScreen> {
   }
 
   void startTimer() {
-    const interval = Duration(milliseconds: 16);
     if (_duration.inMilliseconds >= _time * 1000.0) {
       _duration = const Duration();
     }
-    _timer = Timer.periodic(interval, (timer) {
-      if (_duration.inMilliseconds >= _time * 1000.0) {
-        // Countdown is finished
-        _timer?.cancel();
-        // Perform any desired action when the countdown is completed
-      } else {
-        // Update the countdown value and decrement by 1 second
-        setState(() {
-          _duration = _duration + interval;
-          robots = [getPoseTime()];
-        });
-      }
-    });
+    _play = true;
+  }
+
+  void _scheduleTick() {
+    SchedulerBinding.instance.scheduleFrameCallback((timestamp) {frameCallback(timestamp);});
+  }
+
+  void frameCallback(Duration timeinfo) {
+    Duration interval = timeinfo - lastTime;
+    lastTime = timeinfo;
+
+    if (_duration.inMilliseconds >= _time * 1000.0 || !_play) {
+      // Countdown is finished
+      setState(() {
+        _play = false;
+      });
+      // Perform any desired action when the countdown is completed
+    } else {
+      // Update the countdown value and decrement by 1 second
+      setState(() {
+        _duration = _duration + interval;
+        robots = [getPoseTime()];
+      });
+    }
+
+    _scheduleTick();
   }
 
   RobotPosition getPoseTime() {
-    var pose = getPose(path: path.Path(
-        startSpeed: startSpeed/39.37,
-        endSpeed: endSpeed/39.37,
-        segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
-        commands: []), t: _duration.inMilliseconds /1000.0);
+    var pose = getPose(t: _duration.inMilliseconds /1000.0);
 
     return RobotPosition(pose.x, pose.y, pose.theta);
   }
 
   void stopTimer() {
-    _timer?.cancel();
+    _play = false;
   }
 
   @override
@@ -173,6 +186,7 @@ class _PathingScreenState extends State<PathingScreen> {
                       onChanged: (double value) {
                         setState(() {
                           startSpeed = value;
+                          _buildTime();
                         });
                       },
                     ),
@@ -187,6 +201,7 @@ class _PathingScreenState extends State<PathingScreen> {
                       onChanged: (double value) {
                         setState(() {
                           endSpeed = value;
+                          _buildTime();
                         });
                       },
                     ),
@@ -198,12 +213,12 @@ class _PathingScreenState extends State<PathingScreen> {
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
                     child: IconButton.filledTonal(
-                        isSelected: _timer?.isActive,
+                        isSelected: _play,
                         icon: const Icon(Icons.play_arrow),
                         selectedIcon: const Icon(Icons.pause),
                         onPressed: () {
                           setState(() {
-                            if (_timer == null || !_timer!.isActive) {
+                            if (!_play) {
                               startTimer();
                             } else {
                               stopTimer();
@@ -250,6 +265,7 @@ class _PathingScreenState extends State<PathingScreen> {
 
                                     setState(() {
                                       beziers = newBeziers;
+                                      _buildTime();
                                     });
                                   }
                                 },
@@ -266,6 +282,7 @@ class _PathingScreenState extends State<PathingScreen> {
 
                                     setState(() {
                                       beziers = newBeziers;
+                                      _buildTime();
                                     });
                                   } else {
                                     setState(() {
@@ -277,17 +294,18 @@ class _PathingScreenState extends State<PathingScreen> {
                                               var unit = beziers[i].p1.minus(beziers[i].p2).norm().times(beziers[i-1].reversed ^ beziers[i].reversed ? -1.0 : 1.0);
                                               beziers[i-1].p3 = beziers[i-1].p4.plus(unit.times(mag));
                                             }
-                                            return;
+                                            break;
                                           case 3:
                                             if (i < beziers.length - 1) {
                                               var mag = beziers[i+1].p1.minus(beziers[i+1].p2).magnitude();
                                               var unit = beziers[i].p4.minus(beziers[i].p3).norm().times(beziers[i+1].reversed ^ beziers[i].reversed ? -1.0 : 1.0);
                                               beziers[i+1].p2 = beziers[i+1].p1.plus(unit.times(mag));
                                             }
-                                            return;
+                                            break;
                                           default:
                                         }
                                       }
+                                      _buildTime();
                                     });
                                   }
                                 },
@@ -419,12 +437,15 @@ class _PathingScreenState extends State<PathingScreen> {
     );
   }
 
-  Container buildVelConstraints(BuildContext context) {
+  void _buildTime() {
     _time = getDuration(path: path.Path(
         startSpeed: startSpeed/39.37,
         endSpeed: endSpeed/39.37,
         segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
         commands: [])).toDouble() / 1000.0;
+  }
+
+  Container buildVelConstraints(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
           color: Color(0xfff5eddf),
@@ -480,6 +501,7 @@ class _PathingScreenState extends State<PathingScreen> {
                           for (var element in beziers) {
                             element.pathMaxSpeed = value;
                           }
+                          _buildTime();
                         });
                       },
                     ),
@@ -497,6 +519,7 @@ class _PathingScreenState extends State<PathingScreen> {
                           for (var element in beziers) {
                             element.pathMaxAccel = value;
                           }
+                          _buildTime();
                         });
                       },
                     ),
@@ -564,6 +587,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                       setState(() {
                                         beziers[index].stopEnd =
                                             !beziers[index].stopEnd;
+                                        _buildTime();
                                       });
                                     },
                                   ),
@@ -579,6 +603,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                       setState(() {
                                         beziers[index].reversed =
                                             !beziers[index].reversed;
+                                        _buildTime();
                                       });
                                     },
                                   ),
@@ -596,6 +621,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                     onChanged: (double value) {
                                       setState(() {
                                         beziers[index].pathMaxSpeed = value;
+                                        _buildTime();
                                       });
                                     },
                                   ),
@@ -613,6 +639,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                     onChanged: (double value) {
                                       setState(() {
                                         beziers[index].pathMaxAccel = value;
+                                        _buildTime();
                                       });
                                     },
                                   ),
@@ -669,6 +696,8 @@ class _PathingScreenState extends State<PathingScreen> {
 
       beziers = newBeziers;
       commands = newCommands;
+
+      _buildTime();
     });
   }
 }

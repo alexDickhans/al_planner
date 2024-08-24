@@ -96,11 +96,10 @@ fn wire__crate__api__simple__get_pose_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <motion_profiling::path::Path>::sse_decode(&mut deserializer);
             let api_t = <f64>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
-                let output_ok = Result::<_, ()>::Ok(crate::api::simple::get_pose(api_path, api_t))?;
+                let output_ok = Result::<_, ()>::Ok(crate::api::simple::get_pose(api_t))?;
                 Ok(output_ok)
             })())
         },
