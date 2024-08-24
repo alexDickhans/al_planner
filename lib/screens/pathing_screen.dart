@@ -222,6 +222,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                       beziers.isEmpty
                                           ? Point(1.6, 1.6)
                                           : beziers[beziers.length - 1].p4,
+                                          beziers.isEmpty ? Point(0.0,0.0) :
                                       beziers[beziers.length -1].p3.plus(beziers[beziers.length -1].p3.minus(beziers[beziers.length - 1].p4).times(-2.0)),
                                       beziers.isEmpty
                                           ? Point(0.4, 0.4)

@@ -111,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Focus(
+        autofocus: true,
         child: Scaffold(
           appBar: AppBar(
               backgroundColor: Theme.of(context).colorScheme.secondary,
