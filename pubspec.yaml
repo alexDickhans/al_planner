@@ -43,6 +43,7 @@ dependencies:
   flutter_svg: ^2.0.10
   rust_lib_al_planner:
     path: rust_builder
+  simple_line_chart: 1.5.4
   flutter_rust_bridge: 2.3.0
 
 dev_dependencies:

@@ -9,6 +9,7 @@ use motion_profiling::{
 };
 use motion_profiling::mp_2d::MotionProfile2d;
 use nalgebra::{Vector3};
+use uom::si::velocity::*;
 
 lazy_static!(
     static ref MP: RwLock<CombinedMP<MotionProfile2d>> = RwLock::new(CombinedMP::new(vec![]));
@@ -32,6 +33,14 @@ fn actual_work_get_t(t: f64) -> Pose {
             y: 0.0,
             theta: 0.0,
         }
+    }
+}
+
+fn actual_work_get_v(t: f64) -> f64 {
+    if let Some(command) = MP.write().unwrap().get(Duration::from_millis((t * 1000.0) as u64)) {
+        command.desired_velocity.get::<inch_per_second>()
+    } else {
+        0.0
     }
 }
 
@@ -59,6 +68,12 @@ impl From<Vector3<f64>> for Pose {
 #[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
 pub fn get_pose(t: f64) -> Pose {
     actual_work_get_t(t)
+}
+
+
+#[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
+pub fn get_velocity(t: f64) -> f64 {
+    actual_work_get_v(t)
 }
 
 #[flutter_rust_bridge::frb(init)]

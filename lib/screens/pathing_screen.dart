@@ -11,6 +11,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
 import 'package:flutter_client_sse/flutter_client_sse.dart';
+import 'package:simple_line_chart/simple_line_chart.dart';
 import 'dart:io';
 
 import '../utils/bezier.dart';
@@ -64,6 +65,7 @@ class _PathingScreenState extends State<PathingScreen> {
   double endSpeed = 0.0;
   bool isSkills = false;
   double _time = 0.0;
+  LineChartData _data = LineChartData(datasets: [Dataset(label: "Velocity", dataPoints: <DataPoint>[])]);
 
   // Define a Timer object
   bool _play = false;
@@ -315,6 +317,8 @@ class _PathingScreenState extends State<PathingScreen> {
                                         beziers.isEmpty
                                             ? Point(1.6, 1.6)
                                             : beziers[beziers.length - 1].p4,
+                                        beziers.isEmpty
+                                            ? Point(0.0, 0.0) :
                                         beziers[beziers.length -1].p3.plus(beziers[beziers.length -1].p3.minus(beziers[beziers.length - 1].p4).times(-2.0)),
                                         beziers.isEmpty
                                             ? Point(0.4, 0.4)
@@ -325,6 +329,7 @@ class _PathingScreenState extends State<PathingScreen> {
                                         defaultMaxSpeed,
                                         defaultMaxAccel,
                                         false));
+                                    _buildTime();
                                   });
                                 },
                                 child: CustomPaint(
@@ -344,6 +349,13 @@ class _PathingScreenState extends State<PathingScreen> {
                       ),
                     ],
                   )),
+              LineChart(
+                // chart is styled
+                style: LineChartStyle.fromTheme(context),
+                seriesHeight: 300,
+                // chart has data
+                data: _data,
+                controller: LineChartController()),
               Column(children: [
                 IconButton.filledTonal(
                   onPressed: () {
@@ -443,6 +455,16 @@ class _PathingScreenState extends State<PathingScreen> {
         endSpeed: endSpeed/39.37,
         segments: beziers.map((bezier) => bezier.toPathSegment()).toList(),
         commands: [])).toDouble() / 1000.0;
+    
+    var lineChartData = <DataPoint>[];
+
+    for (int i = 0; i < 20 * beziers.length; i++) {
+      var time = i * _time / (20 * beziers.length);
+      
+      lineChartData.add(DataPoint(x: time, y: getVelocity(t: time)));
+    }
+
+    _data = LineChartData(datasets: [Dataset(label: "Velocity", dataPoints: lineChartData)]);
   }
 
   Container buildVelConstraints(BuildContext context) {
