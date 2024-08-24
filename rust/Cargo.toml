@@ -8,4 +8,8 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.3.0"
-motion_profiling = { path = "../../../../../RustroverProjects/motion_profiling", default-features = false }
+lazy_static = "1.5.0"
+motion_profiling = { git = "https://github.com/alexDickhans/motion_profiling.git", default-features = false }
+nalgebra = { version = "0.33.0", default-features = false, features = [
+    "macros", "alloc"
+] }

@@ -132,9 +132,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "cc"
-version = "1.1.13"
+version = "1.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72db2f7947ecee9b03b510377e8bb9077afa27176fdbff55c51027e976fdcc48"
+checksum = "50d2eb3cd3d1bf4529e31c215ee6f93ec5a3d536d9f578f93d9d33ee19562932"
 dependencies = [
  "shlex",
 ]
@@ -382,8 +382,7 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 [[package]]
 name = "interp"
 version = "1.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "530f1a6dab1502fc7dd5e193d08ed17c775c32c40894b75532533c6b1611f08b"
+source = "git+https://github.com/alexDickhans/interp-rs-no-std.git#db16c1396e928a02fc03d10137c7818e2aa7d603"
 dependencies = [
  "itertools",
  "num-traits",
@@ -458,7 +457,8 @@ dependencies = [
 
 [[package]]
 name = "motion_profiling"
-version = "0.1.1"
+version = "0.1.5"
+source = "git+https://github.com/alexDickhans/motion_profiling.git#430bdf836664af75459ea00594742974b5ef5fc8"
 dependencies = [
  "interp",
  "nalgebra",
@@ -596,9 +596,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.36"
+version = "1.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fa76aaf39101c457836aec0ce2316dbdc3ab723cdda1c6bd4e6ad4208acaca7"
+checksum = "b5b9d34b8991d19d98081b46eacdd8eb58c6f2b201139f7c5f643cc155a633af"
 dependencies = [
  "proc-macro2",
 ]
@@ -637,7 +637,9 @@ name = "rust_lib_al_planner"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
+ "lazy_static",
  "motion_profiling",
+ "nalgebra",
 ]
 
 [[package]]

@@ -9,6 +9,6 @@ class RobotPosition {
 
   Offset getRobotScreenPosition(Size size) {
     return Offset(size.width / 2 - y * size.height / fieldWidth,
-        size.height / 2 + x * size.height / fieldWidth);
+        size.height / 2 - x * size.height / fieldWidth);
   }
 }
