@@ -88,4 +88,7 @@ class Point {
     return Point(x/mag, y/mag);
   }
 
+  void flip() {
+    y = -y;
+  }
 }

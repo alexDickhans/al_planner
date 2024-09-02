@@ -229,6 +229,20 @@ class _PathingScreenState extends State<PathingScreen> {
                           });
                         }),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: IconButton.filledTonal(
+                        isSelected: _play,
+                        icon: const Icon(Icons.flip),
+                        onPressed: () {
+                          setState(() {
+                            for (var value in beziers) {
+                              value.flip();
+                              _buildTime();
+                            }
+                          });
+                        }),
+                  ),
                   Expanded(
                     child: Slider(
                       min: 0.0,

@@ -177,6 +177,13 @@ class Bezier {
     return false;
   }
 
+  void flip() {
+    p1.flip();
+    p2.flip();
+    p3.flip();
+    p4.flip();
+  }
+
   @override
   String toString() {
     // TODO: implement toString
