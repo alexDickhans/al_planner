@@ -89,17 +89,19 @@ class _PathingScreenState extends State<PathingScreen> {
           header: {
             "Accept": "text/event-stream",
           }).listen((event) {
-        print(event.data!);
         if (!event.data!.contains("#")) {
-          var jData = jsonDecode(event.data!);
-          print(jData);
+          try {
+            var jData = jsonDecode(event.data!);
 
-          setState(() {
-            robots.clear();
-            for (var robot in jData) {
-              robots.add(RobotPosition(robot[0], robot[1], robot[2]));
-            }
-          });
+            setState(() {
+              robots.clear();
+              for (var robot in jData) {
+                robots.add(RobotPosition(robot[0], robot[1], robot[2]));
+              }
+            });
+          } catch (e) {
+            print("json parse error");
+          }
         }
       }, onError: (error) {}, onDone: () {});
     }
