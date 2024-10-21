@@ -366,20 +366,6 @@ class _PathingScreenState extends State<PathingScreen> {
                       ),
                     ],
                   )),
-              LineChart(
-                // chart is styled
-                style: LineChartStyle.fromTheme(context),
-                seriesHeight: 300,
-                // chart has data
-                data: _data,
-                controller: LineChartController()),
-              LineChart(
-                // chart is styled
-                  style: LineChartStyle.fromTheme(context),
-                  seriesHeight: 300,
-                  // chart has data
-                  data: _data_angular,
-                  controller: LineChartController()),
               Column(children: [
                 IconButton.filledTonal(
                   onPressed: () {
@@ -446,6 +432,20 @@ class _PathingScreenState extends State<PathingScreen> {
                       }),
                 ),
               ]),
+              LineChart(
+                // chart is styled
+                  style: LineChartStyle.fromTheme(context),
+                  seriesHeight: 300,
+                  // chart has data
+                  data: _data,
+                  controller: LineChartController()),
+              LineChart(
+                // chart is styled
+                  style: LineChartStyle.fromTheme(context),
+                  seriesHeight: 300,
+                  // chart has data
+                  data: _data_angular,
+                  controller: LineChartController()),
               Container(
                 padding: const EdgeInsets.only(bottom: 100),
                 child: LayoutBuilder(
