@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 
 import 'point.dart';
 
-const double pointSize = 12;
-const double maxSpeed = 65;
+const double pointSize = 8;
+const double maxSpeed = 62;
 const double maxAccel = 180;
 
 class Bezier {
